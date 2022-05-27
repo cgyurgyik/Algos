@@ -1,0 +1,32 @@
+{
+  "devDependencies": {
+    "@jest/globals": "^27.5.1",
+    "@typescript-eslint/eslint-plugin": "^5.15.0",
+    "@typescript-eslint/parser": "^5.15.0",
+    "eslint": "^8.11.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.4",
+    "jest": "^27.5.1"
+  },
+  "name": "algos",
+  "description": "practice",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "zsh ./scripts/run-test.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KomodoTech/Algos.git"
+  },
+  "keywords": [
+    "algos",
+    "algorithm"
+  ],
+  "author": "A&J",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/KomodoTech/Algos/issues"
+  },
+  "homepage": "https://github.com/KomodoTech/Algos#readme"
+}

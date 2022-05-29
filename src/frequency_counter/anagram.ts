@@ -14,8 +14,8 @@ const anagram = (str1: string, str2: string): Boolean => {
   if (str1.length !== str2.length) return false;
   // iterate through the first string and cache its character frequencies in an object
   // do the same for the second string
-  const str1Freq: {[key: string]: number} = {};
-  const str2Freq: {[key: string]: number} = {};
+  const str1Freq: { [key: string]: number } = {};
+  const str2Freq: { [key: string]: number } = {};
   for (let i = 0; i < str1.length; i += 1) {
     const currChar1 = str1[i];
     const currChar2 = str2[i];
@@ -43,7 +43,7 @@ const anagram2 = (str1: string, str2: string): Boolean => {
   // check lengths match
   if (str1.length !== str2.length) return false;
   // construct cache
-  const str1Freq: {[key: string]: number} = {};
+  const str1Freq: { [key: string]: number } = {};
   for (let i = 0; i < str1.length; i += 1) {
     const currChar = str1[i];
     if (str1Freq[currChar]) str1Freq[currChar] += 1;

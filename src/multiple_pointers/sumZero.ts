@@ -63,3 +63,4 @@ console.log(sumZero([-2, -1, 0, 4, 5])); // undefined
 console.log(sumZero([])); // undefined
 console.log(sumZero([-25, -2, 0, 2, 3])); // [-2, 2]
 console.log(sumZero([0, 0])); // [0, 0]
+console.log(sumZero([-4, -3, -2, -1, 0, 5, 10])); // undefined

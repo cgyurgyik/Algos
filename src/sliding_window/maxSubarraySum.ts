@@ -77,6 +77,37 @@ console.log(maxSubArraysSumBruteForce([], 3)); // null
 console.log(maxSubArraysSumBruteForce([1, 2, 3], 0)); // null
 console.log(maxSubArraysSumBruteForce([2, 3, 4, -5], 5)); // null
 
+const maxSubarraySumRecursive = (array: number[], k: number): number | null => {
+  if (k > array.length || k === 0) return null;
+  let max: number = 0;
+  for (let i: number = 0; i < k; i += 1) {
+    max += array[i];
+  }
+  const innerHelper = (index: number, end: number, currentSum = 0): number => {
+    // BASE CASE: index is at end
+    if (index === end) return currentSum;
+    // RECURSIVE CASE
+    return innerHelper(index + 1, end, currentSum + array[index]);
+  };
+  const helper = (i: number = 1): void => {
+    // BASE CASE
+    if (i >= array.length - k) return;
+    // RECURSIVE CASE
+    const currentSum = innerHelper(i, i + k);
+    if (currentSum > max) max = currentSum;
+    helper(i + 1);
+  };
+
+  helper();
+  return max;
+};
+
+console.log(maxSubarraySumRecursive([1, -2, 2, 3, 4, 9, 3, 1, 8, 4], 3)); // 16
+console.log(maxSubarraySumRecursive([-1, 2, 1], 3)); // 2
+console.log(maxSubarraySumRecursive([], 3)); // null
+console.log(maxSubarraySumRecursive([1, 2, 3], 0)); // null
+console.log(maxSubarraySumRecursive([2, 3, 4, -5], 5)); // null
+
 // Sliding Window O(n):
 
 // check if n = 0

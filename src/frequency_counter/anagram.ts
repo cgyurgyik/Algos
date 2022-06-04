@@ -43,6 +43,12 @@ const anagram2 = (str1: string, str2: string): Boolean => {
   // check lengths match
   if (str1.length !== str2.length) return false;
   // construct cache
+  /**
+   * const arr: number[] = [];
+   * const obj: {one: number, two: string}
+   * {one: 12, two:'hello'}
+   * const str1Freq: { [key: string]: number } = {};
+   */
   const str1Freq: { [key: string]: number } = {};
   for (let i = 0; i < str1.length; i += 1) {
     const currChar = str1[i];

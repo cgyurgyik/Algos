@@ -39,8 +39,8 @@
 
 // sorted: [1, 2, 4, 5, 6, 7, 8, 9, 9, 10]
 
-const duplicateMistake = (array: number []): number => {
-  // initialize result variable to 0
-  // initialize object with counts
-  // return result
-}
+// const duplicateMistake = (array: number []): number => {
+//   // initialize result variable to 0
+//   // initialize object with counts
+//   // return result
+// }

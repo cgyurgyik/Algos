@@ -48,9 +48,9 @@
 // check if n is 0. If so return null
 // initialize a max variable to the sum of the first n elements
 // Iterate through the array (starting at 1) and for each element
-    // initialize a variable to keep track of the current sum
+// initialize a variable to keep track of the current sum
 // iterate from that element’s index to index + n
-    // add current elements to the current sum
+// add current elements to the current sum
 // compare the current sum and the max. Updating max if necessary
 // return max
 
@@ -165,6 +165,33 @@ console.log(maxSubArraysSum([], 3)); // null
 console.log(maxSubArraysSum([1, 2, 3], 0)); // null
 console.log(maxSubArraysSum([2, 3, 4, -5], 5)); // null
 
+/**
+ * make sure that the length of the ints array is greater than n (if not return null)
+ * to make the pointers more explicit initialize a pointer to point to the nth element
+ * initialize a currentSum variable to the sum of the first n elements
+ * intialize a maxSum variable and set it to the currentSum
+ * starting at the second element iterate through the array of ints
+ *  update the pointer to point to the index + n
+ *  update currentSum to be the currentSum plus the element at pointer
+ *  compare the currentSum to the maxSum and update maxSum if necessary
+ * return the maxSum
+ */
+//  function maxSubarraySum(ints, n){
+//   if (ints.length < n) return null;
+//   let pointer = n - 1 ;
+//   let currentSum = 0;
+//   for (let i = 0; i < n; i += 1) {
+//       currentSum += ints[i];
+//   }
+//   let maxSum = currentSum;
+//   for (let index = 1; index < ints.length; index += 1) {
+//       pointer += 1;
+//       currentSum = currentSum + ints[pointer] - ints[index - 1];
+//       if (currentSum > maxSum) maxSum = currentSum;
+//   }
+//   return maxSum;
+// }
+
 // variation: maxSubArray: https://leetcode.com/problems/maximum-subarray/
 /**
 * Given an integer array nums, find the contiguous subarray (containing at least one number)
@@ -188,17 +215,17 @@ console.log(maxSubArraysSum([2, 3, 4, -5], 5)); // null
 
 // just get the sum for now
 // initialize a max var to the first non-negative element
-  // Actually there could only be negative elements so this isn't a good idea
+// Actually there could only be negative elements so this isn't a good idea
 // initialize a sum var to the max
 // keep track of the starter pointer to the first element
 // and an end pointer
 // start iterating starting at the start pointer
-  // add current element to the sum.
-  // if updated sum is positive
-    // check if it is larger than max and if so update max and move end pointer
-  // otherwise (make sure you have all the info wrt indices and everything of current max) 
-  // reset the sum to 0
-  // move both start and end pointers
+// add current element to the sum.
+// if updated sum is positive
+// check if it is larger than max and if so update max and move end pointer
+// otherwise (make sure you have all the info wrt indices and everything of current max)
+// reset the sum to 0
+// move both start and end pointers
 // at the end return all relevant information about the max
 
 /**
@@ -240,17 +267,20 @@ const maxSubArray = (array: number[]): [number, number[], number[]] | null => {
   return [max, maxIndices, maxValues];
 };
 
-// var maxSubArray = function(nums) {
+// var maxSubArray = function (nums) {
 //   let maxSum = -Infinity;
 //   let currSum = 0;
-
-//   for(let i = 0; i < nums.length; i++) {
-//       // compare the current element to the current sum using math.max
-//       currSum = Math.max(nums[i], currSum + nums[i]);
-//       maxSum = Math.max(currSum, maxSum);
+//   for (let i = 0; i < nums.length; i++) {
+//     // compare the current element to the current sum using math.max
+//     currSum = Math.max(nums[i], currSum + nums[i]);
+//     maxSum = Math.max(currSum, maxSum);
 //   }
 //   return maxSum;
 // };
+
+/**
+ *
+ */
 
 console.log(maxSubArray([])); // null
 console.log(maxSubArray([10])); // [10, [0, 0], [10]]

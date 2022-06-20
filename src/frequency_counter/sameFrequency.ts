@@ -37,6 +37,7 @@ const sameFrequency = (integers: number []): Boolean | null => {
   const int2Digits = createDigitArray(integers[1]);
   const frequencies: { [key: string]: number } = {};
 
+  // NOTE: you can combine the next two for loops
   for (let i = 0; i < int1Digits.length; i += 1) {
     const currDigit: number = int1Digits[i];
     if (frequencies[currDigit]) frequencies[currDigit] += 1;

@@ -50,7 +50,8 @@ Output: [0,0,9,0,0]
  * construct output appropriately
  */
 
-const productExcludeAtIndex = (arr: number[]): number[] => {
+const productExcludeAtIndex = (arr: number[]): number[] | null => {
+  if (!arr.length) return null;
   const output: number[] = new Array(arr.length).fill(0);
   let numZeros: number = 0;
   let firstZeroIndex: number = -1;
@@ -71,6 +72,7 @@ const productExcludeAtIndex = (arr: number[]): number[] => {
   return output;
 };
 
+console.log(productExcludeAtIndex([])); // null
 console.log(productExcludeAtIndex([-1, 1, 0, -3, 3])); // [0, 0, 9, 0, 0]
 console.log(productExcludeAtIndex([-1, 1, 0, -3, 3, 0])); // [0, 0, 0, 0, 0, 0]
 console.log(productExcludeAtIndex([1, 2, 3, 4])); // [24, 12, 8, 6]

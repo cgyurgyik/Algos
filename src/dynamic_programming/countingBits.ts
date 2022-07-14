@@ -66,5 +66,16 @@ const countingBits = (n: number): Uint16Array => {
   return result;
 };
 
+const alternateCountingBits = (n: number): Uint16Array => {
+  const result: Uint16Array = new Uint16Array(n + 1);
+  for (let i = 1; i < n + 1; i += 1) {
+    // eslint-disable-next-line no-bitwise
+    result[i] = 1 + result[i ^ (1 << (31 - Math.clz32(i)))];
+  }
+  return result;
+};
+
 console.log(countingBits(0)); // expect [0]
 console.log(countingBits(57)); // expect [0, 1, 1, 2, 1, 2, 2, 3, ..., 4]
+console.log(alternateCountingBits(0)); // expect [0]
+console.log(alternateCountingBits(57)); // expect [0, 1, 1, 2, 1, 2, 2, 3, ..., 4]

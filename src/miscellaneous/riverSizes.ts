@@ -97,11 +97,13 @@ console.log(riverSizes([
   [1, 1, 0],
   [0, 1, 1]
 ])); // [4, 3]
+// NOTE: THIS EXAMPLE SHOWS THAT THE PROBLEM WAS POORLY DEFINED AND BRANCHING
+// IS DEPENDENT ON ORDER OF IF STATEMENTS!
 console.log(riverSizes([
   [1, 1, 0, 0, 0, 0, 1, 1],
   [1, 0, 1, 1, 1, 1, 0, 1],
   [0, 1, 1, 0, 0, 0, 1, 1]
-])); // [3, 6, 5]
+])); // [2, 2, 5, 3, 4]
 console.log(riverSizes([
   [1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0]
 ])); // [3, 2, 1]

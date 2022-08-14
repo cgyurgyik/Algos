@@ -48,10 +48,50 @@
  *[] IndexDPQ(int maxN, int D, boolean max = true)    
  * (create a priority queue with initial capacity maxN, using a d-ary tree/heap,
  *  maxpq if max == true otherwise minpq)
+ * 
+ * strategy:
+ * -[] define Comparable interface (for now with ecmascript specs so
+ * isLessThan, isLooselyEqual, isStrictlyEqual have to be methods that are
+ * should be present)
+ * -[] Comparable itself should take a generic that determines what its method
+ * constraints take as args
+ * -[] IndexDPQ should take a generic that extends the Comparable interface
+ * unioned with the primitive types that are comparable with the < operator
+ * (bigint, number, string)
+ * -[] define private properties on the class that are the three arrays we
+ * need, the size of the arrays (initialized by maxN), and the number of
+ * elements in the heap
+ * 
+ * time complexity:
+ * O(1)
  *  
  *[] IndexDPQ(Item[] array, int D, boolean max = true)    
  * (create a priority queue building the pq from an existing array, using a d-ary
  *  tree/heap, maxpq if max == true otherwise minpq)
+ * 
+ * strategy:
+ * -[] look at the passed in array's length and use that to determine the size of
+ * heap/pq, inversemap/qp 
+ * -[] set keys/values/items array to the passed in Item array
+ * //TODO: compare inserting every item into the heap versus the other way
+ * -[] fill out heap/pq and inversemap/qp
+ * -[] find last element in heap that isn't a leaf (findLastInternal)
+ * -[] while you aren't out of bounds (heap index > 0) iterate backwards through heap
+ * -[] sink item at current position
+ * 
+ * time complexity:
+ * // TODO: check that nothing changes for a D != 2
+ * - this one is actually important to understand more in depth. On first glance, since
+ * the last non-leaf is around size()/degree it's easy to think that building the heap
+ * takes O(N*ln(N)) since each sink is O(ln(N)). This is in fact not a tight bound.
+ * The intuitive reason is that at the level right above the leaves, you only have to compare
+ * once to get to the bottom. So at that level you have a constant compare time, but
+ * order N nodes (N / D) to deal with. Whereas, if you look at the root node, in the worst
+ * case you have to do order of log_d(N) aka O(ln(N)) compares to get to the bottom, but
+ * you only have a constant (1) nodes to deal with. If you do the precise mathematical
+ * analysis you can bound the sum you get with the geometric sum, and that allows you
+ * to get a tight bound of:
+ * O(N)   
  */
 /* -------------------------------- insertion ------------------------------- */
 /** 
@@ -122,6 +162,15 @@
 /* --------------------------------- update --------------------------------- */
 /**
  * void change(int k, Item item) (change the item associated with k to item)
+ * 
+ * strategy:
+ * -[] k refers to the index of keys/items. update the value keys array to the
+ * item that was passed in.
+ * -[] look up position in heap/pq via qp[k]
+ * -[] call sink and swim on that position
+ * 
+ * time complexity:
+ * O(ln(N))
  */
 /* ------------------------ maintenance of invariant ------------------------ */
 /**
@@ -200,6 +249,23 @@
  */
 /* --------------------------------- utility -------------------------------- */
 /**
+ * //TODO:
+ *[] findLastInternalNode()           (check heap and determine the position of the
+ *   last node that is not a leaf)
+ * 
+ * strategy:
+ * https://cs.stackexchange.com/questions/9914/finding-the-height-of-a-d-ary-heap
+ * -[] find the height of the d-ary tree given size(). This will be:
+ *  h = cieling(log_d(size()*(d-1)+1)) -1
+ * //TODO: figure out why that is the height of a d-heap and make sure you're solid on this
+ * -[] with the height you can calculate the last internal element by the
+ * sum from k=0 to k=h of d^k. This is a geometric sum so it ends up being
+ * (1 - d^h)/(1-d)
+ * 
+ * time complexity:
+ * O(1) 
+ *
+ * 
  *[] void exch(int i, int j)     (exchange references in heap/pq and
  * inversemap/qp in such a way that it corresponds to swapping items on the heap)
  *

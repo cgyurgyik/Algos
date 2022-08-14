@@ -9,9 +9,10 @@ interface Comparable<T> {
 }
 
 // TODO: make a generic indexPQ that can be either min or max
+// TODO: make this work for non-binary trees (D-ary with D > 1)
 // TODO: make it so you can actually use comparable, number, bigint, and string. initial thought is to just union
 // Key extends Comparable<key> but i don't think that that works
-class IndexMinPQ<Key extends Comparable<Key>> {
+class IndexMinPQ<Key extends Comparable<Key> | number | bigint | string> {
     // pq holds indices that correspond to keys in keys array. pq[0] is empty so 1 indexed
     private pq: number[];      
     // qp gives the position of i in pq[] (the index j s.t. pq[j] is i. -1 if not found)
@@ -34,7 +35,9 @@ class IndexMinPQ<Key extends Comparable<Key>> {
     }
     //TODO: add constructor that takes in an array and builds an indexed min PQ from it
 
-    // HELPER FUNCTIONS:
+    /* -------------------------------------------------------------------------- */
+    /*                              HELPER FUNCTIONS                              */
+    /* -------------------------------------------------------------------------- */
     /**
      * @description less compares two comparable keys and determines if the first is less than the second.
      * it should be generic and leverage the Comparable interface.
@@ -44,6 +47,9 @@ class IndexMinPQ<Key extends Comparable<Key>> {
      */
     private less(key1: Key, key2: Key): boolean {
         // TODO: make this work with number, bigint and string which don't have isLessThan
+        if (typeof key1 === "number" || typeof key1 === "string" || typeof key1 === "bigint") {
+            return key1 < key2;
+        }
         return key1.isLessThan(key2);
     }
 
@@ -52,7 +58,7 @@ class IndexMinPQ<Key extends Comparable<Key>> {
         while (Math.floor(i / 2)) {
             const parentIndex = Math.floor(i / 2);
             // swap curr with parent if it is smaller
-            if (this.keys[this.pq[i]].isLessThan(this.keys[this.pq[parentIndex]])) {
+            if (this.less(this.keys[this.pq[i]],this.keys[this.pq[parentIndex]])) {
                 // swap qp
                 const tempqpIndex = this.qp[this.pq[i]];
                 this.qp[this.pq[i]] = this.qp[this.pq[parentIndex]];
@@ -66,7 +72,6 @@ class IndexMinPQ<Key extends Comparable<Key>> {
         }
     }
 
-    // TODO: as is, you can insert at index which makes no sense to me
     public insert(i: number, key: Key): void {
         // resize (double array size) pq, qp, and keys if adding another key would go out of bound
         if (this.pqSize + 1 === this.arraySize) {
@@ -142,6 +147,13 @@ indexMinPQ.insert(2, comparable2);
 indexMinPQ.insert(3, comparable3);
 indexMinPQ.insert(4, comparable4);
 indexMinPQ.insert(5, comparable5);
+
+const indexMinPQNumber = new IndexMinPQ<number>(2);
+indexMinPQNumber.insert(1, 5);
+indexMinPQNumber.insert(2, 4);
+indexMinPQNumber.insert(3, 7);
+indexMinPQNumber.insert(4, 10);
+
 // const notComparable1 = {value1: 1, value2: 2};
 // const notComparable2 = {value1: 3, value2: 4};
 // const indexMinPQNotComparable = new IndexMinPQ<NotComparable>;

@@ -93,6 +93,22 @@
  * to get a tight bound of:
  * O(N)   
  */
+/* -------------------------------- heapsort -------------------------------- */
+/**
+ * Item[] sortdown()             (returns the sorted list of items using heapsort)
+ * 
+ * strategy:
+ * -[] I'm assuming that the general idea is to keep calling deleteRoot and
+ * saving the result in another array that gets returned once there are no items
+ * left in the heap
+ * -[] If we are in minPQ mode, we should return the array as is. if we are in
+ * maxPQ mode, it needs to be reversed so that we return the elements in non-decreasing
+ * order
+ * 
+ * time complexity:
+ * //TODO: do analysis
+ * O(N*ln(N))
+ */
 /* -------------------------------- insertion ------------------------------- */
 /** 
  *[] void insert(int k, Item item) (insert item; associate it with k)
@@ -332,9 +348,5 @@
  * 
  * time complexity:
  * O(1)
- */
-/* -------------------------------- heapsort -------------------------------- */
-/**
- * Item[] sortdown()             (returns the sorted list of items using heapsort)
  */
    

@@ -1,3 +1,8 @@
+//TODO: once everything is finalized go through and clean up variable names in
+// documentation
+// I don't love the name keys for the items array. values is kind of vague too
+// items might be better
+
 /* -------------------------------------------------------------------------- */
 /*                     GENERALIZED INDEXED PRIORITY QUEUE                     */
 /* -------------------------------------------------------------------------- */
@@ -18,7 +23,11 @@
 /* -------------------------------------------------------------------------- */
 /**
  * - we are using 1-indexed arrays to make some of the arithmetic a little nicer
+ * // TODO: it actually makes the d-heap parent and childrne calculations a bit
+ * worse. is 0-indexed easier overall?
  * - mostly based off of Sedgwick textbook so naming conventions usually follow
+ * - Sedgwick suggests returning -1 for indices when an item isn't found. I don't
+ * - mind this, but for the actual items array (values/keys)
  */
 
 /* -------------------------------------------------------------------------- */
@@ -28,7 +37,9 @@
 /* -------------------------------------------------------------------------- */
 /*                                APPLICATIONS                                */
 /* -------------------------------------------------------------------------- */
-
+/* -------------------------------------------------------------------------- */
+/*                               VARIABLE NAMES                               */
+/* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 /*                                     API                                    */
 /* -------------------------------------------------------------------------- */
@@ -62,9 +73,56 @@
  * time complexity:
  * - rebuilding array on insert should be amortized //TODO: do the math to prove
  * - swim is the leading function in terms or order of growth
- * - O(log_d(N)) = O(ln(N) 
+ * O(log_d(N)) = O(ln(N) 
  */
-
+/* -------------------------------- deletion -------------------------------- */
+/**
+ * void delete(int k)            (remove k and its associated item)
+ *
+ * strategy: 
+ * -[] first check to see if you should resize the arrays. if removing this item
+ * would bring you below the 1/4 full mark, for each array create another array
+ * that is half the size of the original and copy everything over.
+ * -[] set qp[pq[k]] to be deleted (-1)
+ * -[] swap the item at index k with the last item (using the heap size property) in heap/pq
+ * -[] set pq's last item to be deleted (-1)
+ * -[] delete item from keys array
+ * -[] decrement heap size
+ * -[] call sink on new root
+ * -[] call swim on new root
+ * 
+ * time complexity:
+ * - resizing the array should be amortized //TODO: confirm
+ * - calling sink and swim will be O(ln(N)) because if you call sink and current node
+ * compares with children in such a way that you get back false (e.g. min heap and
+ * children are not smaller) that's one check and then you break out of sink and move onto
+ * swim. It's symmetric so calling sink first or swim first shouldn't make a difference
+ * O(ln(N))
+ *
+ *
+ * Item deleteRoot()             (remove a minimal or maximal item and return it)
+ * 
+ * //NOTE: Sedgwick wants the index back.
+ * //TODO: confirm that this makes no sense
+ * int delRoot()                  (remove a minimal or maximal item and return its index)
+ * I don't understand why you would ever need the index back unless
+ * it is refering to the index of the items array. Even then, it should delete
+ * the item from the items array as well and just return the item itself.
+ *  
+ * strategy:
+ * -[] save values/keys[pq[1]] as well as its index in the keys array
+ * -[] call delete(1)
+ * -[] return the deleted item
+ * 
+ * time complexity:
+ * - just takes complexity of delete(int k)
+ * O(ln(N))  
+ *  
+ */
+/* --------------------------------- update --------------------------------- */
+/**
+ * void change(int k, Item item) (change the item associated with k to item)
+ */
 /* ------------------------ maintenance of invariant ------------------------ */
 /**
  *[] swim(int k)                 (bubble item at index k to appropriate position)
@@ -82,7 +140,7 @@
  *
  * time complexity:
  * - you would at worst have to exchange floor(log_d(N)) times and swaps are constant
- * - O(ln(N))
+ * O(ln(N))
  *
  *  
  * [] sink(int k)                (move item at index k down to appropriate position)
@@ -108,7 +166,37 @@
  * a feasible situation, but one of the main advantages of priority queues is the
  * ability to quickly pop off the root node, so this doesn't seem like a frequent
  * use case.
- * - O(d*log_d(N)) = O(ln(N))
+ * O(d*log_d(N)) = O(ln(N))
+ */
+/* ------------------------------- inspection ------------------------------- */
+/** 
+ *[] Item root()                    (return a minimal or maximal item)
+ *
+ * strategy:
+ * -[] root will be at heap[0]/pq[0] and item will be at values[heap[0]]/keys[pq[0]]
+ * 
+ * time complexity:
+ * O(1) 
+ * 
+ *[] int rootIndex()                (return a minimal or maximal item's index)
+ *
+ * strategy:
+ * -[] root index will be at heap[0]/pq[0] (whole point of priority queues
+ * guaranteed by heap invariant)
+ */
+/* -------------------------------- searching ------------------------------- */
+/**
+ *[] boolean contains(int k)       (is k associated with some item)
+ *
+ * strategy:
+ * -[] this k refers to the values/keys array i believe //TODO: confirm
+ * -[] you can use the inverse map/qp array to check this (
+ * if qp[k] is set to something other than null or -1 or undefined or whatever
+ * we decide on, we know that the item is in the values/keys array)
+ *
+ * time complexity:
+ * O(1) another benefit of this setup. in a regular heap, you would have to traverse
+ * which would be O(log(N)) //TODO: confirm
  */
 /* --------------------------------- utility -------------------------------- */
 /**
@@ -123,37 +211,64 @@
  * O(1)
  *
  * 
- *[] getParentIndex(int k)       (given index on heap find parent given degree)
+ *[] int[] getChildrenIndices(int k) (given index on heap find all children)
+ * 
+ * strategy:
+ * -[] the formula is: d*(i-1) + 2 for the first child (range up to d*(i-1) + 2 + (d-1))
+ * Math here checks out:
+ * https://stackoverflow.com/questions/41432323/formula-for-index-of-a-children-of-a-node-in-a-d-ary-heap
+ * Same as with binary, you have to think about each row containing the children of the previous row
+ * you end up with the first item (1-indexed item) in each row (0-indexed rows) being:
+ * 1 + Sigma_0_r(d^k) which using the geometric series you can show gives you 1 + (1 - d^r)/(1 - d)
+ * You can then rewrite this using the first item of the previous row (basically inductively) and you
+ * end up with the equation above
+ *
+ * time complexity:
+ * O(1)
+ * 
+ * 
+ *  
+ *[] int getParentIndex(int k)       (given index on heap find parent given degree)
  *
  * strategy:
- * -[] 
+ * -[] this is basically the inverse of the first child (but using floor to deal with all children):
+ * floor((i-2)/d + 1)
+ * 
+ * time complexity:
+ * O(1)
+ * 
+ * //TODO: is this a bit too ambiguous? Is there a better structure/name for this? 
+ *[] boolean compare(int i, int j)    (independent of min or max heap return true if item at i should
+ *   be swapped with item j)
+ * 
+ * strategy:
+ * -[] for min heap if item_i < item_j return true. else return false
+ * -[] for max heap if item_i > item_j return true. else return false
+ * -[] deal with custom Comparable objects having isLessThan
+ * 
+ * time complexity:
+ * O(1)
+ *
+ * 
+ *[] boolean isEmpty()             (is the priority queue empty?)
+ * 
+ * strategy:
+ * -[] just use the heap size variable
+ * 
+ * time complexity:
+ * O(1)
  * 
  * 
+ *[] int size()                    (number of items in the priority queue)
  * 
+ * strategy:
+ * -[] just return the heap size variable
  * 
- * getChildrenIndices
- * compare
+ * time complexity:
+ * O(1)
  */
-
-
-/** 
- * void change(int k, Item item) (change the item associated with k to item)
- * 
- * boolean contains(int k)       (is k associated with some item)
- * 
- * void delete(int k)            (remove k and its associated item)
- * 
- * Item min()                    (return a minimal item)
- * 
- * int minIndex()                (return a minimal item's index)
- * 
- * int delMin()                  (remove a minimal item and return its index)
- * 
- * boolean isEmpty()             (is the priority queue empty?)
- * 
- * int size()                    (number of items in the priority queue)
- */ 
 /* -------------------------------- heapsort -------------------------------- */
 /**
  * Item[] sortdown()             (returns the sorted list of items using heapsort)
  */
+   

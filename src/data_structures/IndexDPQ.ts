@@ -305,7 +305,7 @@
 /* --------------------------------- utility -------------------------------- */
 /**
  * //TODO:
- *[] findLastInternalNode()           (check heap and determine the position of
+ *[x] findLastInternalNode()           (check heap and determine the position of
  * the last node that is not a leaf)
  *
  * strategy:
@@ -357,13 +357,14 @@
  * so that it acts like N_h. Doing this is a little subtle so I will come back
  * to it later. The end result is:
  *
- * h = ceiling(Log_D((D - 1) * N_h) + 1) - 1
+ * h = ceiling(Log_D((D - 1) * M) + 1) - 1
  */
 /* ---------------------------- end of math proof --------------------------- */
 /**
- * -[] with the height you can calculate the last internal element by the
- * sum from k=0 to k=h of d^k. This is a geometric sum so it ends up being
- * (1 - d^h)/(1-d)
+ * -[x] with the height you can calculate the last internal element by the
+ * sum from k=0 to k=h=ceiling(Log_D((D - 1) * M + 1) - 1 of D^k.
+ * This is a geometric sum so it ends up being
+ * (1 - D^(h+1))/(1-D) = (1 - D^(ceiling(Log_D(D - 1) * M + 1)))/(1 - D)
  *
  * time complexity:
  * O(1)
@@ -524,6 +525,13 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     this.qp[item2Index] = i;
     this.pq[i] = item2Index;
     this.pq[j] = item1Index;
+  }
+
+  private findLastInternalNode(): number {
+    const height = Math.ceil(
+      Math.log((this.D - 1) * this.numberOfItemsInHeap + 1) / Math.log(this.D),
+    ) - 1;
+    return (1 - (this.D ** (height + 1))) / (1 - this.D);
   }
 }
 

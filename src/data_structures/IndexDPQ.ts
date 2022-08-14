@@ -104,6 +104,9 @@
  * -[] If we are in minPQ mode, we should return the array as is. if we are in
  * maxPQ mode, it needs to be reversed so that we return the elements in non-decreasing
  * order
+ * -[] do this in-place by splitting the heap into a sorted and unsorted part.
+ * this can be done without violating the heap invariant I think (unsorted is still
+ * not violating invariant)
  * 
  * time complexity:
  * //TODO: do analysis

@@ -309,10 +309,58 @@
  * the last node that is not a leaf)
  *
  * strategy:
- * https://cs.stackexchange.com/questions/9914/finding-the-height-of-a-d-ary-heap
+ */
+// eslint-disable-next-line max-len
+/** https://cs.stackexchange.com/questions/9914/finding-the-height-of-a-d-ary-heap
  * -[] find the height of the d-ary tree given size(). This will be:
  *  h = cieling(log_d(size()*(d-1)+1)) -1
- * //TODO: figure out why that is the height of a d-heap and make sure you're solid on this
+ /* ------------------------------- math proof -------------------------------*/
+/**
+ * 1). define:
+ *  a). h as the height of the tree (0 indexed)
+ *  b). N_h as the number of elements in a FULL tree of height h. It is also the
+ *  index of the last node in the tree for 1-indexed nodes.
+ *  c). D is the degree of the tree (max subtrees per node)
+ *
+ * 2). Write N_h-1 in terms of N_h
+ *  a). N_h is the sum from k = 0 to k = h of D^k
+ *  b). N_(h-1) is the sum from k = 0 to k = h-1 of D^k
+ *  c). D*N_(h-1) = N_h - 1
+ *  d). it follows that N_(h-1) = (N_h - 1) / D
+ *
+ * 3). Write D^h (which is the number of elements at level h) in terms of N_h
+ *  a). N_h - N_(h-1) = D^h this is intuitive because N_h - N_(h-1) basically
+ *  just gives you the number of elements in the last row (visually remove tree
+ *  with one less level from main tree and you just get the last level)
+ *
+ * 4). Write D^(h+1) in terms of D^h
+ *  a). D^(h+1) = D * D^h
+ *
+ * 5). Write D^(h+1) in terms of N_h
+ *  a). D^(h+1) = D * D^h (from 4)
+ *  b). D * D^h = D * (N_h - N_(h-1)) (from 3)
+ *  c). D * (N_h - N_(h-1)) = D * (N_h - ((N_h - 1) / D)) (from 2)
+ *  d). D * (N_h - ((N_h - 1) / D)) = D * ((D * N_h) - (N_h - 1)) / D
+ *  = ((D * N_h) - (N_h - 1)) = ((D - 1) * N_h) + 1 (from algebra)
+ *  e). so D^(h + 1) = ((D - 1) * N_h) + 1
+ *
+ * 6). Take Log_D of both sides
+ *  a). Log_D(D^(h + 1)) = Log_D(((D - 1) * N_h) + 1)
+ *  b). simplify: h + 1 = Log_D(((D - 1) * N_h) + 1)
+ *  c). so h = Log_D(((D - 1) * N_h) + 1) - 1
+ *
+ * //TODO: prove for m
+ * we have successfuly found the height of tree given the last index of the
+ * FULL tree. That being said, we want the index of the tree given the last
+ * index of a complete (but not necessarily FULL tree).
+ * We basically have to round up some index M sitting on the same level as N_h
+ * so that it acts like N_h. Doing this is a little subtle so I will come back
+ * to it later. The end result is:
+ *
+ * h = ceiling(Log_D((D - 1) * N_h) + 1) - 1
+ */
+/* ---------------------------- end of math proof --------------------------- */
+/**
  * -[] with the height you can calculate the last internal element by the
  * sum from k=0 to k=h of d^k. This is a geometric sum so it ends up being
  * (1 - d^h)/(1-d)
@@ -321,13 +369,13 @@
  * O(1)
  *
  *
- *[] void exch(int i, int j)     (exchange references in heap/pq and
+ *[x] void exch(int i, int j)     (exchange references in heap/pq and
  * inversemap/qp in such a way that it corresponds to swapping items on the
  * heap)
  *
  * strategy:
- * -[] do inversemap/qp first: swap qp[pq[i]] = j and qp[pq[j]] = i
- * -[] heap/pq is super straightforward (swap with temp)
+ * -[x] do inversemap/qp first: swap qp[pq[i]] = j and qp[pq[j]] = i
+ * -[x] heap/pq is super straightforward (swap with temp)
  *
  * time complexity:
  * O(1)
@@ -467,6 +515,15 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
       childrenIndices[j] = (this.D * (i - 1)) + 2 + j;
     }
     return childrenIndices;
+  }
+
+  private exch(i: number, j: number): void {
+    const item1Index = this.pq[i];
+    const item2Index = this.pq[j];
+    this.qp[item1Index] = j;
+    this.qp[item2Index] = i;
+    this.pq[i] = item2Index;
+    this.pq[j] = item1Index;
   }
 }
 

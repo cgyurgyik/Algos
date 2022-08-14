@@ -1,4 +1,4 @@
-/* eslint linebreak-style: ["error", "linux"] */
+/* eslint linebreak-style: ["error", "unix"] */
 
 // TODO: once everything is finalized go through and clean up variable names in
 // documentation
@@ -82,7 +82,8 @@
 /* ------------------------------ constructors ------------------------------ */
 /**
  *[] IndexDPQ(int initialArraysSize, int D, boolean max = true)
- * (create a priority queue with initial capacity initialArraysSize, using a d-ary tree/heap,
+ * (create a priority queue with initial capacity initialArraysSize, using a
+ * d-ary tree/heap,
  *  maxpq if max == true otherwise minpq)
  *
  * strategy:
@@ -95,38 +96,40 @@
  * unioned with the primitive types that are comparable with the < operator
  * (bigint, number, string)
  * -[] define private properties on the class that are the three arrays we
- * need, the size of the arrays (initialized by initialArraysSize), and the number of
- * elements in the heap
+ * need, the size of the arrays (initialized by initialArraysSize), and the
+ * number of elements in the heap
  *
  * time complexity:
  * O(1)
  *
  *[] IndexDPQ(Item[] array, int D, boolean max = true)
- * (create a priority queue building the pq from an existing array, using a d-ary
- *  tree/heap, maxpq if max == true otherwise minpq)
+ * (create a priority queue building the pq from an existing array, using a
+ * d-ary tree/heap, maxpq if max == true otherwise minpq)
  *
  * strategy:
- * -[] look at the passed in array's length and use that to determine the size of
- * heap/pq, inversemap/qp
+ * -[] look at the passed in array's length and use that to determine the
+ * size of heap/pq, inversemap/qp
  * -[] set keys/values/items array to the passed in Item array
  * //TODO: compare inserting every item into the heap versus the other way
  * -[] fill out heap/pq and inversemap/qp
  * -[] find last element in heap that isn't a leaf (findLastInternal)
- * -[] while you aren't out of bounds (heap index > 0) iterate backwards through heap
+ * -[] while you aren't out of bounds (heap index > 0) iterate backwards
+ * through heap
  * -[] sink item at current position
  *
  * time complexity:
  * // TODO: check that nothing changes for a D != 2
- * - this one is actually important to understand more in depth. On first glance, since
- * the last non-leaf is around size()/degree it's easy to think that building the heap
- * takes O(N*ln(N)) since each sink is O(ln(N)). This is in fact not a tight bound.
- * The intuitive reason is that at the level right above the leaves, you only have to compare
- * once to get to the bottom. So at that level you have a constant compare time, but
- * order N nodes (N / D) to deal with. Whereas, if you look at the root node, in the worst
- * case you have to do order of log_d(N) aka O(ln(N)) compares to get to the bottom, but
- * you only have a constant (1) nodes to deal with. If you do the precise mathematical
- * analysis you can bound the sum you get with the geometric sum, and that allows you
- * to get a tight bound of:
+ * - this one is actually important to understand more in depth. On first
+ * glance, since the last non-leaf is around size()/degree it's easy to think
+ * that building the heap takes O(N*ln(N)) since each sink is O(ln(N)). This is
+ * in fact not a tight bound. The intuitive reason is that at the level right
+ * above the leaves, you only have to compare once to get to the bottom. So at
+ * that level you have a constant compare time, but order N nodes (N / D) to
+ * deal with. Whereas, if you look at the root node, in the worst case you have
+ * to do order of log_d(N) aka O(ln(N)) compares to get to the bottom, but you
+ * only have a constant (1) nodes to deal with. If you do the precise
+ * mathematical analysis you can bound the sum you get with the geometric sum,
+ * and that allows you to get a tight bound of:
  * O(N)
  */
 /* -------------------------------- heapsort -------------------------------- */
@@ -274,27 +277,27 @@
  */
 /* ------------------------------- inspection ------------------------------- */
 /**
- *[] Item root()                    (return a minimal or maximal item)
+ *[x] Item root()                    (return a minimal or maximal item)
  *
  * strategy:
- * -[] root will be at heap[0]/pq[0] and item will be at values[heap[0]]/keys[pq[0]]
+ * -[x] root will be at heap[1]/pq[1] and item will be at items[pq[0]]
  *
  * time complexity:
  * O(1)
  *
- *[] int rootIndex()                (return a minimal or maximal item's index)
+ *[x] int rootIndex()                (return a minimal or maximal item's index)
  *
  * strategy:
- * -[] root index will be at heap[0]/pq[0] (whole point of priority queues
+ * -[x] root index will be at heap[1]/pq[1] (whole point of priority queues
  * guaranteed by heap invariant)
  */
 /* -------------------------------- searching ------------------------------- */
 /**
- *[] boolean contains(int k)       (is k associated with some item)
+ *[x] boolean contains(int k)       (is k associated with some item)
  *
  * strategy:
- * -[] this k refers to the values/keys array i believe //TODO: confirm
- * -[] you can use the inverse map/qp array to check this (
+ * -[x] this k refers to the values/keys array i believe //TODO: confirm
+ * -[x] you can use the inverse map/qp array to check this (
  * if qp[k] is set to something other than null or -1 or undefined or whatever
  * we decide on, we know that the item is in the values/keys array)
  *
@@ -312,7 +315,7 @@
  */
 // eslint-disable-next-line max-len
 /** https://cs.stackexchange.com/questions/9914/finding-the-height-of-a-d-ary-heap
- * -[] find the height of the d-ary tree given size(). This will be:
+ * -[x] find the height of the d-ary tree given size(). This will be:
  *  h = cieling(log_d(size()*(d-1)+1)) -1
  /* ------------------------------- math proof -------------------------------*/
 /**
@@ -532,6 +535,18 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
       Math.log((this.D - 1) * this.numberOfItemsInHeap + 1) / Math.log(this.D),
     ) - 1;
     return (1 - (this.D ** (height + 1))) / (1 - this.D);
+  }
+
+  private contains(k: number): boolean {
+    return this.qp[k] !== -1;
+  }
+
+  private rootIndex(): number {
+    return this.pq[1];
+  }
+
+  private root(): Item {
+    return this.items[this.pq[1]];
   }
 }
 

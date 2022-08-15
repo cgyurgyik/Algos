@@ -175,34 +175,11 @@
  */
 /* -------------------------------- deletion -------------------------------- */
 /**
- * void delete(int k)            (remove k and its associated item)
- *
- * strategy:
- * -[] first check to see if you should resize the arrays. if removing this item
- * would bring you below the 1/4 full mark, for each array create another array
- * that is half the size of the original and copy everything over.
- * -[] set qp[pq[k]] to be deleted (-1)
- * -[] swap the item at index k with the last item (using the heap size property) in heap/pq
- * -[] set pq's last item to be deleted (-1)
- * -[] delete item from keys array
- * -[] decrement heap size
- * -[] call sink on new root
- * -[] call swim on new root
- *
- * time complexity:
- * - resizing the array should be amortized //TODO: confirm
- * - calling sink and swim will be O(ln(N)) because if you call sink and current node
- * compares with children in such a way that you get back false (e.g. min heap and
- * children are not smaller) that's one check and then you break out of sink and move onto
- * swim. It's symmetric so calling sink first or swim first shouldn't make a difference
- * O(ln(N))
- *
- *
- * Item deleteRoot()             (remove a minimal or maximal item and return it)
+ *[] Item deleteRoot()          (remove a minimal or maximal item and return it)
  *
  * //NOTE: Sedgwick wants the index back.
  * //TODO: confirm that this makes no sense
- * int delRoot()                  (remove a minimal or maximal item and return its index)
+ * int delRoot()         (remove a minimal or maximal item and return its index)
  * I don't understand why you would ever need the index back unless
  * it is refering to the index of the items array. Even then, it should delete
  * the item from the items array as well and just return the item itself.
@@ -216,16 +193,46 @@
  * - just takes complexity of delete(int k)
  * O(ln(N))
  *
+ *
+ * // TODO: should i return the deleted item?
+ * // WARNING: k refers to the items index not the heap index
+ *[] void delete(int k)            (remove k and its associated item)
+ *
+ * strategy:
+ * -[x] first check to see if you should resize the arrays. if removing this
+ * item would bring you below the 1/4 full mark, for each array create another
+ * array that is half the size of the original and copy everything over.
+ * -[x] set qp[k] to be deleted (-1)
+ * -[x] swap the item on heap with the last item (using the heap size
+ * property) in heap/pq
+ * -[x] set pq's last item to be deleted (-1)
+ * -[x] delete item from keys array (note you have to be careful with types here
+ * I had to avoid setting to null because that's not a valid type for Item)
+ * -[x] decrement heap size
+ * -[x] call sink on new root
+ * -[x] call swim on new root
+ *
+ * time complexity:
+ * - resizing the array should be amortized //TODO: confirm
+ * - calling sink and swim will be O(ln(N)) because if you call sink and
+ * current node compares with children in such a way that you get back false
+ * (e.g. min heap and children are not smaller) that's one check and then you
+ * break out of sink and move onto swim. It's symmetric so calling sink first
+ * or swim first shouldn't make a difference
+ * O(ln(N))
+ *
+ *
+ *
  */
 /* --------------------------------- update --------------------------------- */
 /**
- * void change(int k, Item item) (change the item associated with k to item)
+ *[x] void change(int k, Item item) (change the item associated with k to item)
  *
  * strategy:
- * -[] k refers to the index of keys/items. update the value keys array to the
+ * -[x] k refers to the index of keys/items. update the value keys array to the
  * item that was passed in.
- * -[] look up position in heap/pq via qp[k]
- * -[] call sink and swim on that position
+ * -[x] look up position in heap/pq via qp[k]
+ * -[x] call sink and swim on that position
  *
  * time complexity:
  * O(ln(N))
@@ -463,7 +470,7 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
 
   private qp: number[];
 
-  private items: Item[];
+  private items: (Item | null)[];
 
   private arraysSize: number;
 
@@ -495,8 +502,8 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
       * //TODO: test this
       */
     if (this.pq[i] > 0 && this.pq[j] > 0) {
-      const item1: Item = this.items[this.pq[i]];
-      const item2: Item = this.items[this.pq[j]];
+      const item1: (Item | null) = this.items[this.pq[i]];
+      const item2: (Item | null) = this.items[this.pq[j]];
       // TODO: confirm that you cannot end up in a situation where item1
       // and item 2 are of different types
       if (typeof item1 === 'number'
@@ -506,9 +513,10 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
          * logical XOR (e.g. minHeap aka max is false and compare(5,4) should
          * return false)
          */
-        return (item1 < item2) !== this.max;
+        if (item2 !== null) return (item1 < item2) !== this.max;
+      } else if (item1 !== null && item2 !== null) {
+        return item1.isLessThan(item2) !== this.max;
       }
-      return item1.isLessThan(item2) !== this.max;
     }
     throw new Error(HEAP_INDICES_OUT_OF_RANGE_ERROR);
   }
@@ -553,7 +561,7 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     return this.pq[1];
   }
 
-  private root(): Item {
+  private root(): (Item | null) {
     return this.items[this.pq[1]];
   }
 
@@ -596,6 +604,50 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
         parentIndex = this.getParentIndex(currentIndex);
       } else break;
     }
+  }
+
+  public change(k: number, item: Item): void {
+    this.items[k] = item;
+    this.sink(this.qp[k]);
+    this.swim(this.qp[k]);
+  }
+
+  public delete(k: number): void {
+    // TODO: check thoroughly but this takes into account the 0th element
+    // in the arrays. The +1 cancels out with the -1 from the deleted element
+    // TODO: is there any way for the number of items in the items array and the
+    // number of items in the heap to get out of sync?
+    if ((this.numberOfItemsInHeap / this.arraysSize) <= (1 / 4)) {
+      const newArraysSize = Math.ceil(this.arraysSize / 2);
+      const newPQ = new Array(newArraysSize).fill(-1);
+      const newQP = new Array(newArraysSize).fill(-1);
+      const newItems = new Array(newArraysSize).fill(null);
+      // TODO: look for optimizations. not filling in twice?
+      // NOTE: I don't think it's a big deal to copy over the single item that
+      // will be deleted.
+      for (let i = 0; i < this.numberOfItemsInHeap; i++) {
+        newPQ[i] = this.pq[i];
+        newQP[i] = this.qp[i];
+        newItems[i] = this.items[i];
+      }
+      this.pq = newPQ;
+      this.qp = newQP;
+      this.items = newItems;
+    }
+    const swapIndex = this.qp[k];
+    this.qp[k] = -1;
+    this.exch(swapIndex, this.numberOfItemsInHeap + 1);
+    this.pq[this.numberOfItemsInHeap + 1] = -1;
+    this.items[this.numberOfItemsInHeap] = null;
+    this.numberOfItemsInHeap--;
+    this.sink(swapIndex);
+    this.swim(swapIndex);
+  }
+
+  public deleteRoot(): (Item | null) {
+    const rootItem = this.items[this.pq[1]];
+    this.delete(1);
+    return rootItem;
   }
 }
 

@@ -232,47 +232,50 @@
  */
 /* ------------------------ maintenance of invariant ------------------------ */
 /**
- *[] swim(int k)                 (bubble item at index k to appropriate position)
+ *[x] swim(int k)               (bubble item at index k to appropriate position)
  *
  * strategy:
- * -[] find heap/pq index of parent node
- * -[] while parent is in bounds (if not you are already at the root)
- * -[] compare current node with parent node
- * -[] compare using a compare function (handle both basic values and Comparables)
- * -[] swap (exch) nodes appropriately with compare function (deal with both max and
- * min priority queues) for inversemap/qp
- * -[] swap (exch) for heap/pq
- * -[] leave keys/items array alone
- * -[] break out if comparison tells you you're in the right place
+ * -[x] find heap/pq index of parent node
+ * -[x] while parent is in bounds (if not you are already at the root)
+ * -[x] compare current node with parent node
+ * -[x] compare using a compare function (handle both basic values and
+ * Comparables)
+ * -[x] swap (exch) nodes appropriately with compare function (deal with both
+ * max and min priority queues) for inversemap/qp
+ * -[x] swap (exch) for heap/pq
+ * -[x] leave keys/items array alone
+ * -[x] break out if comparison tells you you're in the right place
  *
  * time complexity:
- * - you would at worst have to exchange floor(log_d(N)) times and swaps are constant
+ * - you would at worst have to exchange floor(log_d(N)) times and swaps are
+ * constant
  * O(ln(N))
  *
  *
- * [] sink(int k)                (move item at index k down to appropriate position)
+ * [x] sink(int k)           (move item at index k down to appropriate position)
  *
  * strategy:
- * -[] find the smallest/largest children node indices
- * -[] while at least one child is in bounds
+ * -[x] find the smallest/largest children node indices
+ * -[x] while at least one child is in bounds
  * (call getChildrenIndices due to D-ary tree)
- * -[] use the comparsion abstraction compare(Item item1, Item item2)
- * -[] if current node is smaller/larger than the max/min of children
+ * -[x] use the comparsion abstraction compare(Item item1, Item item2)
+ * -[x] if current node is smaller/larger than the max/min of children
  * exch nodes from heap/pq and inversemap/qp
- * -[] otherwise break out
+ * -[x] otherwise break out
  *
  * time complexity:
- * - this is where the degree D of the tree comes into play. You have an inherent
- * tradeoff: the more subtrees (maximum of all nodes) the smaller the height
- * of the tree and thus the fewer levels you have to sink in the worst case,
- * BUT the more subtrees(...) the more children nodes you have to check to determine
- * which is the maximum or the minimum. //TODO: do the math in depth and confirm logic
- * So you would think that the best case scenario for a high degree is when you swim
- * a lot (fewer levels to swim up no comparing multiple items) and sink rarely. That
- * corresponds in practice to few deletes/updates and many inserts. I guess that is
- * a feasible situation, but one of the main advantages of priority queues is the
- * ability to quickly pop off the root node, so this doesn't seem like a frequent
- * use case.
+ * - this is where the degree D of the tree comes into play. You have an
+ * inherent tradeoff: the more subtrees (maximum of all nodes) the smaller
+ * the height of the tree and thus the fewer levels you have to sink in the
+ * worst case, BUT the more subtrees(...) the more children nodes you have to
+ * check to determine which is the maximum or the minimum. //TODO: do the math
+ * in depth and confirm logic
+ * So you would think that the best case scenario for a high degree is when
+ * you swim a lot (fewer levels to swim up no comparing multiple items) and
+ * sink rarely. That corresponds in practice to few deletes/updates and many
+ * inserts. I guess that is a feasible situation, but one of the main
+ * advantages of priority queues is the ability to quickly pop off the root
+ * node, so this doesn't seem like a frequent use case.
  * O(d*log_d(N)) = O(ln(N))
  */
 /* ------------------------------- inspection ------------------------------- */
@@ -441,6 +444,8 @@
  * O(1)
  */
 
+// TODO: clean up index naming in methods (try to be consistent. maybe hi is
+// heap index)
 // eslint-disable-next-line max-len
 const HEAP_INDICES_OUT_OF_RANGE_ERROR = 'The indices given are not in bounds. NOTE: Heap is 1-indexed.';
 /**
@@ -512,10 +517,13 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     return Math.floor(((i - 2) / this.D) + 1);
   }
 
-  private getChildrenIndices(i: number): Uint32Array {
+  // TODO: can I get away with Uint32Array here? -1 is in use but
+  // only for something that doesn't exist
+  private getChildrenIndices(i: number): Int32Array {
     // TODO: would indices ever get to 32bits?
-    const childrenIndices = new Uint32Array(this.D);
-    for (let j = 0; j < this.D; j += 1) {
+    // TODO: is this just a place for a dynamic array?
+    const childrenIndices = new Int32Array(this.D).fill(-1);
+    for (let j = 0; j < this.D; j++) {
       childrenIndices[j] = (this.D * (i - 1)) + 2 + j;
     }
     return childrenIndices;
@@ -547,6 +555,47 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
 
   private root(): Item {
     return this.items[this.pq[1]];
+  }
+
+  // TODO: make sure nothing weird can happen with undefined or null
+  private sink(i: number): void {
+    let currentIndex: number = i;
+    let children: Int32Array = this.getChildrenIndices(currentIndex);
+    while (children[0] > 0) {
+      /**
+       * extremeIndex here means either the index on the heap that corresponds
+       * to the minimum item if you have a minHeap or a maximal item in the
+       * case of a maxHeap
+       */
+      let extremeIndex: number = children[0];
+      let j: number = 1;
+      while (children[j] > 0 && children[j] !== undefined) {
+        const currChildIndex: number = children[j];
+        if (this.compare(currChildIndex, extremeIndex)) {
+          extremeIndex = currChildIndex;
+        }
+        j++;
+      }
+      if (this.compare(extremeIndex, currentIndex)) {
+        this.exch(extremeIndex, currentIndex);
+        currentIndex = extremeIndex;
+        children = this.getChildrenIndices(currentIndex);
+      } else break;
+    }
+  }
+
+  // TODO: figure out what the minimum checks are. will parentIndex ever be too
+  // large (out of bounds in the other direction) for example?
+  private swim(i: number): void {
+    let currentIndex = i;
+    let parentIndex: number = this.getParentIndex(currentIndex);
+    while (parentIndex > 0) {
+      if (this.compare(currentIndex, parentIndex)) {
+        this.exch(currentIndex, parentIndex);
+        currentIndex = parentIndex;
+        parentIndex = this.getParentIndex(currentIndex);
+      } else break;
+    }
   }
 }
 

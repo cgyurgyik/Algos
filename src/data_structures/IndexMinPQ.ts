@@ -2,11 +2,11 @@
  * @description define an interface for comparable objects
  * methods based off of ecmascript spec
  */
-interface Comparable<T> {
-    isLooselyEqual(value: T): boolean;
-    isStrictlyEqual(value: T): boolean;
-    isLessThan(value: T, leftFirst?: boolean): boolean;
-}
+// interface Comparable<T> {
+//     isLooselyEqual(value: T): boolean;
+//     isStrictlyEqual(value: T): boolean;
+//     isLessThan(value: T, leftFirst?: boolean): boolean;
+// }
 
 // TODO: make a generic indexPQ that can be either min or max
 // TODO: make this work for non-binary trees (D-ary with D > 1)

@@ -496,13 +496,13 @@
 // TODO: clean up index naming in methods (try to be consistent. maybe hi is
 // heap index)
 // eslint-disable-next-line max-len
-const INDEX_TOO_HIGH = 'Error: Index is greater than the number of items NOTE: arrays are 1-indexed.';
+const INDEX_TOO_HIGH = 'Index is greater than the number of items NOTE: arrays are 1-indexed.';
 // eslint-disable-next-line max-len
-const INDEX_TOO_LOW = 'Error: Index is lower than 1 NOTE: arrays are 1-indexed.';
+const INDEX_TOO_LOW = 'Index is lower than 1 NOTE: arrays are 1-indexed.';
 // eslint-disable-next-line max-len
-const COMPARISON_FAILED = 'Error: Comparison failed';
+const COMPARISON_FAILED = 'ERROR: Comparison failed';
 // eslint-disable-next-line max-len
-const INTIAL_ARRAY_SIZE_TOO_SMALL = 'Error: Initial arrays size must be at least 2';
+const INTIAL_ARRAY_SIZE_TOO_SMALL = 'ERROR: Initial arrays size must be at least 2';
 /**
  * @description define an interface for comparable objects
  * methods based off of ecmascript spec
@@ -540,8 +540,10 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   }
 
   private validateIndex(i: number): void {
-    if (i < 1) throw Error(INDEX_TOO_LOW);
-    if (i > this.numberOfItemsInHeap) throw Error(INDEX_TOO_HIGH);
+    if (i < 1) throw Error(`ERROR: index ${i}: ${INDEX_TOO_LOW}`);
+    if (i > this.numberOfItemsInHeap) {
+      throw Error(`ERROR: index ${i} ${INDEX_TOO_HIGH}`);
+    }
   }
 
   public isEmpty(): boolean {
@@ -549,7 +551,8 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   }
 
   // TODO: should invoker of compare check for inbounds indices or
-  // should compare?
+  // should compare? It seems that we already might be validating
+  // before calling compare. Avoid double checking
   private compare(i: number, j: number): boolean {
     /**
       * check if i and j are in bounds (if they have a non -1 value in pq
@@ -629,32 +632,38 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     return this.items[this.pq[1]];
   }
 
-  // TODO: make sure nothing weird can happen with undefined or null
+  // TODO: review for accuracy and optimization
   private sink(i: number): void {
     let currentIndex: number = i;
-    let children: Int32Array = this.getChildrenIndices(currentIndex);
-    // TODO: This looks wrong. two while loops with the first not changing?
-    // should be an if?
-    while (children[0] > 0) {
+    const childrenIndices: Int32Array = this.getChildrenIndices(currentIndex);
+    const validChildrenIndices: number[] = [];
+    for (let j = 0; j < childrenIndices.length; j++) {
+      const currChildIndex: number = childrenIndices[j];
+      // TODO: consider making a function that validates but returns boolean
+      // instead of throwing error when invalid
+      if (currChildIndex > 0 && currChildIndex <= this.numberOfItemsInHeap) {
+        validChildrenIndices.push(currChildIndex);
+      }
+    }
+    if (validChildrenIndices.length) {
       /**
        * extremeIndex here means either the index on the heap that corresponds
        * to the minimum item if you have a minHeap or a maximal item in the
        * case of a maxHeap
        */
-      let extremeIndex: number = children[0];
-      let j: number = 1;
-      while (children[j] > 0 && children[j] !== undefined) {
-        const currChildIndex: number = children[j];
+      let extremeIndex: number = validChildrenIndices[0];
+      for (let k = 1; k < validChildrenIndices.length; k++) {
+        const currChildIndex: number = validChildrenIndices[k];
         if (this.compare(currChildIndex, extremeIndex)) {
           extremeIndex = currChildIndex;
         }
-        j++;
       }
+      // RECURSIVE CASE: a swap needs to occur and a next call to sink
       if (this.compare(extremeIndex, currentIndex)) {
         this.exch(extremeIndex, currentIndex);
         currentIndex = extremeIndex;
-        children = this.getChildrenIndices(currentIndex);
-      } else break;
+        this.sink(currentIndex);
+      }
     }
   }
 
@@ -723,7 +732,7 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
       const newPQ = new Array(newArraysSize).fill(-1);
       const newQP = new Array(newArraysSize).fill(-1);
       const newItems = new Array(newArraysSize).fill(null);
-      for (let i = 0; i < this.numberOfItemsInHeap; i++) {
+      for (let i = 1; i <= this.numberOfItemsInHeap; i++) {
         newPQ[i] = this.pq[i];
         newQP[i] = this.qp[i];
         newItems[i] = this.items[i];

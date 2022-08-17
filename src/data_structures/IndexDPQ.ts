@@ -5,6 +5,13 @@
 // I don't love the name keys for the items array. values is kind of vague too
 // items might be better
 
+// TODO: implement a hashmap for items. In Sedgwick, the delete method does not
+// swap positions on the items array and instead appears to just leave -1s
+// everywhere which does not seem ideal. On the other hand, if delete swaps
+// items in the items array, their indices change, so delete(int k) would
+// require client to somehow track the indices (which seems unreasonable).
+// We should be able to get around this with a hashmap
+
 /* -------------------------------------------------------------------------- */
 /*                     GENERALIZED INDEXED PRIORITY QUEUE                     */
 /* -------------------------------------------------------------------------- */
@@ -35,7 +42,25 @@
 /* -------------------------------------------------------------------------- */
 /*                    COMPARISON TO REGULAR PRIORITY QUEUE                    */
 /* -------------------------------------------------------------------------- */
-
+/**
+ * FROM SEDGEWICK:
+ * A useful way of thinking of this data type is as implementing an array, but
+ * with fast access to the smallest entry in the array. It actually does even
+ * better, giving fast access to the minimum entry in a specified subset of an
+ * array's entries (the ones that have been inserted). In other words, you can
+ * think of an IndexMinPQ named pq as representing a subset of an array
+ * pq[0..N-1] of items. Think of the call pq.insert(i, key) as adding i to the
+ * subset and setting pq[i] = key and the call pq.changeKey(i, key) as setting
+ * pq[i] = key, both maintaining the data structures needed to support the
+ * other operations, most importantly delMin() (remove and return the index of
+ * the maximum key) and changeKey() (change the item associated with an index
+ * that is already in the data structure - just as in pq[i] = key). When an
+ * item in the heap changes, we can restore the heap invariant with a sink
+ * operation (if the key decreases) and a swim operation (if the key increases).
+ * To perform the operations, we use the index to find the item in the heap.
+ * The ability to locate an item in the heap also allows us to add the delete()
+ * operation to the API.
+ */
 /* -------------------------------------------------------------------------- */
 /*                                APPLICATIONS                                */
 /* -------------------------------------------------------------------------- */
@@ -153,18 +178,20 @@
  */
 /* -------------------------------- insertion ------------------------------- */
 /**
- *[] void insert(int k, Item item) (insert item; associate it with k)
+ *void insert(int k, Item item) (insert item; associate it with k)
  * NOTE: k refers to the index in keys array.
  * //TODO: figure out why you wouldn't just always insert at last index in keys
  * won't keys' length be the same as the heap's/pq's length always?
  *
+ *
  * strategy:
  * -[] make sure that you don't have a key at index k in keys array
+ *
  * -[] check to see if you can fit another Item in arrays. if not rebuild the
  *  arrays with double the space
  * -[] add the Item at the end of the key's array
  * -[] point the next unfilled element of the heap (pq) to the newly added Item
- * -[] update the inverse map qp (map from Key/Item array index to heap/pq index)
+ * -[] update the inverse map qp (map from Key/Item array index to pq index)
  * -[] increment the heap/pq size property
  * -[] swim the last element in heap/pq till
  *
@@ -175,7 +202,7 @@
  */
 /* -------------------------------- deletion -------------------------------- */
 /**
- *[] Item deleteRoot()          (remove a minimal or maximal item and return it)
+ *[x] Item deleteRoot()         (remove a minimal or maximal item and return it)
  *
  * //NOTE: Sedgwick wants the index back.
  * //TODO: confirm that this makes no sense
@@ -185,9 +212,9 @@
  * the item from the items array as well and just return the item itself.
  *
  * strategy:
- * -[] save values/keys[pq[1]] as well as its index in the keys array
- * -[] call delete(1)
- * -[] return the deleted item
+ * -[x] save values/keys[pq[1]] as well as its index in the keys array
+ * -[x] call delete(1)
+ * -[x] return the deleted item
  *
  * time complexity:
  * - just takes complexity of delete(int k)
@@ -196,21 +223,22 @@
  *
  * // TODO: should i return the deleted item?
  * // WARNING: k refers to the items index not the heap index
- *[] void delete(int k)            (remove k and its associated item)
+ *[x] void delete(int k)            (remove k and its associated item)
  *
  * strategy:
- * -[x] first check to see if you should resize the arrays. if removing this
- * item would bring you below the 1/4 full mark, for each array create another
- * array that is half the size of the original and copy everything over.
  * -[x] set qp[k] to be deleted (-1)
  * -[x] swap the item on heap with the last item (using the heap size
  * property) in heap/pq
  * -[x] set pq's last item to be deleted (-1)
- * -[x] delete item from keys array (note you have to be careful with types here
- * I had to avoid setting to null because that's not a valid type for Item)
+ * -[x] swap and delete item from keys array (note you have to be careful with
+ * types here I had to avoid setting to null because that's not a valid type
+ * for Item)
  * -[x] decrement heap size
  * -[x] call sink on new root
  * -[x] call swim on new root
+ * -[x] first check to see if you should resize the arrays. if removing this
+ * item would bring you below the 1/4 full mark, for each array create another
+ * array that is half the size of the original and copy everything over.
  *
  * time complexity:
  * - resizing the array should be amortized //TODO: confirm
@@ -449,12 +477,26 @@
  *
  * time complexity:
  * O(1)
+ *
+ *
+ * [] void validateIndex()        (throw an exception if index is out of bounds)
+ *
+ * strategy:
+ * -[] check if index is less than 1 or greater than the number of elements on
+ * the heap
+ *
+ * time complexity:
+ * O(1)
  */
 
 // TODO: clean up index naming in methods (try to be consistent. maybe hi is
 // heap index)
 // eslint-disable-next-line max-len
-const HEAP_INDICES_OUT_OF_RANGE_ERROR = 'The indices given are not in bounds. NOTE: Heap is 1-indexed.';
+const INDEX_TOO_HIGH = 'Error: Index is greater than the number of items NOTE: arrays are 1-indexed.';
+// eslint-disable-next-line max-len
+const INDEX_TOO_LOW = 'Error: Index is lower than 1 NOTE: arrays are 1-indexed.';
+// eslint-disable-next-line max-len
+const COMPARISON_FAILED = 'Error: Comparison failed';
 /**
  * @description define an interface for comparable objects
  * methods based off of ecmascript spec
@@ -489,6 +531,11 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     this.items = new Array(initialArraysSize).fill(null);
   }
 
+  private validateIndex(i: number): void {
+    if (i < 1) throw Error(INDEX_TOO_LOW);
+    if (i > this.numberOfItemsInHeap) throw Error(INDEX_TOO_HIGH);
+  }
+
   private isEmpty(): boolean {
     return this.numberOfItemsInHeap === 0;
   }
@@ -500,25 +547,29 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
       * check if i and j are in bounds (if they have a non -1 value in pq
       * there is no reason that they will have a null value in items)
       * //TODO: test this
+      * // TODO: improve compare:
+      * This isn't satisfying, becuase there are too many checks just to
+      * make typescript happy. Really, I should only be checking that the
+      * two values at pq[i] and pq[j] are greater than 0.
       */
-    if (this.pq[i] > 0 && this.pq[j] > 0) {
-      const item1: (Item | null) = this.items[this.pq[i]];
-      const item2: (Item | null) = this.items[this.pq[j]];
-      // TODO: confirm that you cannot end up in a situation where item1
-      // and item 2 are of different types
-      if (typeof item1 === 'number'
+    this.validateIndex(i);
+    this.validateIndex(j);
+    const item1: (Item | null) = this.items[this.pq[i]];
+    const item2: (Item | null) = this.items[this.pq[j]];
+    // TODO: confirm that you cannot end up in a situation where item1
+    // and item 2 are of different types
+    if (typeof item1 === 'number'
         || typeof item1 === 'string'
         || typeof item1 === 'bigint') {
-        /**
+      /**
          * logical XOR (e.g. minHeap aka max is false and compare(5,4) should
          * return false)
          */
-        if (item2 !== null) return (item1 < item2) !== this.max;
-      } else if (item1 !== null && item2 !== null) {
-        return item1.isLessThan(item2) !== this.max;
-      }
+      if (item2 !== null) return (item1 < item2) !== this.max;
+    } else if (item1 !== null && item2 !== null) {
+      return item1.isLessThan(item2) !== this.max;
     }
-    throw new Error(HEAP_INDICES_OUT_OF_RANGE_ERROR);
+    throw new Error(COMPARISON_FAILED);
   }
 
   private getParentIndex(i: number): number {
@@ -546,6 +597,7 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     this.pq[j] = item1Index;
   }
 
+  // TODO: Find equation for last internal node that has a child
   private findLastInternalNode(): number {
     const height = Math.ceil(
       Math.log((this.D - 1) * this.numberOfItemsInHeap + 1) / Math.log(this.D),
@@ -612,19 +664,49 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     this.swim(this.qp[k]);
   }
 
+  // TODO: revisit to see if you can skip any steps
   public delete(k: number): void {
+    this.validateIndex(k);
+    const swapIndex = this.qp[k];
+    // swap item to be deleted with last item in items array
+    this.items[k] = this.items[this.numberOfItemsInHeap];
+    // just delete it from the items array immediately
+    this.items[this.numberOfItemsInHeap] = null;
+    /**
+     * Remap pq to stay up to date with change. You could update qp first but i
+     * think this is more intuitive
+     */
+    this.pq[this.qp[k]] = this.numberOfItemsInHeap;
+    this.pq[this.qp[this.numberOfItemsInHeap]] = k;
+    // Remap qp
+    const temp = this.qp[k];
+    this.qp[k] = this.qp[this.numberOfItemsInHeap];
+    this.qp[this.numberOfItemsInHeap] = temp;
+    /**
+     * At this point everything should be the same, just remapped (and item is
+     * deleted from items array)
+     */
+    /**
+     * From the pov of the heap, exchange the item we wish to delete with the
+     * last item in the heap
+     */
+    this.exch(swapIndex, this.numberOfItemsInHeap);
+    // Delete item from qp and pq
+    this.qp[this.numberOfItemsInHeap] = -1;
+    this.pq[this.numberOfItemsInHeap] = -1;
+    // Reflect deletion in count of items in heap
+    this.numberOfItemsInHeap--;
+    // Now sink and swim the item so that we restore the heap invariant
+    this.sink(swapIndex);
+    this.swim(swapIndex);
     // TODO: check thoroughly but this takes into account the 0th element
     // in the arrays. The +1 cancels out with the -1 from the deleted element
-    // TODO: is there any way for the number of items in the items array and the
-    // number of items in the heap to get out of sync?
+    // Finally resize the array if need be
     if ((this.numberOfItemsInHeap / this.arraysSize) <= (1 / 4)) {
       const newArraysSize = Math.ceil(this.arraysSize / 2);
       const newPQ = new Array(newArraysSize).fill(-1);
       const newQP = new Array(newArraysSize).fill(-1);
       const newItems = new Array(newArraysSize).fill(null);
-      // TODO: look for optimizations. not filling in twice?
-      // NOTE: I don't think it's a big deal to copy over the single item that
-      // will be deleted.
       for (let i = 0; i < this.numberOfItemsInHeap; i++) {
         newPQ[i] = this.pq[i];
         newQP[i] = this.qp[i];
@@ -634,14 +716,6 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
       this.qp = newQP;
       this.items = newItems;
     }
-    const swapIndex = this.qp[k];
-    this.qp[k] = -1;
-    this.exch(swapIndex, this.numberOfItemsInHeap + 1);
-    this.pq[this.numberOfItemsInHeap + 1] = -1;
-    this.items[this.numberOfItemsInHeap] = null;
-    this.numberOfItemsInHeap--;
-    this.sink(swapIndex);
-    this.swim(swapIndex);
   }
 
   public deleteRoot(): (Item | null) {

@@ -178,22 +178,26 @@
  */
 /* -------------------------------- insertion ------------------------------- */
 /**
- *void insert(int k, Item item) (insert item; associate it with k)
- * NOTE: k refers to the index in keys array.
- * //TODO: figure out why you wouldn't just always insert at last index in keys
- * won't keys' length be the same as the heap's/pq's length always?
+ * // NOTE: k refers to the index in keys array.
+ * // NOTE: after much thought, I have decided that it doesn't make
+ * much sense to insert an item at an index:
+ * If you don't insert at the end of the items list, you will be
+ * overwriting which would either just be considered an update, or
+ * if you really wanted to squeeze something in without clobbering
+ * what is there, it would require a heap rebuild as far as I can tell
+ * which would make the worst case time complexity O(n).
+ * This may have been built this way because the Sedgwick implementation
+ * of deletion leaves 'holes' in the items array. I aim to fix that though.
  *
- *
+ * void insert(Item item)      (insert an item and add it to the priority queue)
  * strategy:
- * -[] make sure that you don't have a key at index k in keys array
- *
- * -[] check to see if you can fit another Item in arrays. if not rebuild the
+ * -[x] check to see if you can fit another Item in arrays. if not rebuild the
  *  arrays with double the space
- * -[] add the Item at the end of the key's array
- * -[] point the next unfilled element of the heap (pq) to the newly added Item
- * -[] update the inverse map qp (map from Key/Item array index to pq index)
- * -[] increment the heap/pq size property
- * -[] swim the last element in heap/pq till
+ * -[x] increment the heap/pq size property
+ * -[x] add the Item at the end of the items array
+ * -[x] point the next unfilled element of the heap (pq) to the newly added Item
+ * -[x] update the inverse map qp (map from items array index to pq index)
+ * -[x] swim the last element in pq
  *
  * time complexity:
  * - rebuilding array on insert should be amortized //TODO: do the math to prove
@@ -588,6 +592,10 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     return childrenIndices;
   }
 
+  /** // TODO: this techincally saves one more number in memory than strictly
+   * necessary. I don't think that matters much at all, but if this were
+   * being shipped to a lot of people, maybe i would change it
+   */
   private exch(i: number, j: number): void {
     const item1Index = this.pq[i];
     const item2Index = this.pq[j];
@@ -664,6 +672,8 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     this.swim(this.qp[k]);
   }
 
+  // TODO: if deleteRoot returns Item and delete is public, what is the logic
+  // for not returning an Item on delete?
   // TODO: revisit to see if you can skip any steps
   public delete(k: number): void {
     this.validateIndex(k);
@@ -722,6 +732,28 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     const rootItem = this.items[this.pq[1]];
     this.delete(1);
     return rootItem;
+  }
+
+  public insert(item: Item): void {
+    // NOTE: remember that all our arrays are 1 indexed
+    if ((this.numberOfItemsInHeap + 2) > this.arraysSize) {
+      const newItems = new Array(2 * this.arraysSize).fill(null);
+      const newPQ = new Array(2 * this.arraysSize).fill(-1);
+      const newQP = new Array(2 * this.arraysSize).fill(-1);
+      for (let i = 1; i <= this.numberOfItemsInHeap; i++) {
+        newItems[i] = this.items[i];
+        newPQ[i] = this.pq[i];
+        newQP[i] = this.qp[i];
+      }
+      this.items = newItems;
+      this.pq = newPQ;
+      this.qp = newQP;
+    }
+    this.numberOfItemsInHeap++;
+    this.items[this.numberOfItemsInHeap] = item;
+    this.pq[this.numberOfItemsInHeap] = this.numberOfItemsInHeap;
+    this.qp[this.numberOfItemsInHeap] = this.numberOfItemsInHeap;
+    this.swim(this.numberOfItemsInHeap);
   }
 }
 

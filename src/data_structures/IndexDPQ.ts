@@ -189,7 +189,7 @@
  * This may have been built this way because the Sedgwick implementation
  * of deletion leaves 'holes' in the items array. I aim to fix that though.
  *
- * void insert(Item item)      (insert an item and add it to the priority queue)
+ * [x] void insert(Item item)  (insert an item and add it to the priority queue)
  * strategy:
  * -[x] check to see if you can fit another Item in arrays. if not rebuild the
  *  arrays with double the space
@@ -501,6 +501,8 @@ const INDEX_TOO_HIGH = 'Error: Index is greater than the number of items NOTE: a
 const INDEX_TOO_LOW = 'Error: Index is lower than 1 NOTE: arrays are 1-indexed.';
 // eslint-disable-next-line max-len
 const COMPARISON_FAILED = 'Error: Comparison failed';
+// eslint-disable-next-line max-len
+const INTIAL_ARRAY_SIZE_TOO_SMALL = 'Error: Initial arrays size must be at least 2';
 /**
  * @description define an interface for comparable objects
  * methods based off of ecmascript spec
@@ -526,7 +528,9 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
 
   private max: boolean;
 
-  constructor(initialArraysSize: number, D: number, max: boolean = true) {
+  constructor(D: number, initialArraysSize: number, max: boolean = true) {
+    // TODO: is there a limit on how large the initial arrays size should be?
+    if (initialArraysSize < 2) throw new Error(INTIAL_ARRAY_SIZE_TOO_SMALL);
     this.arraysSize = initialArraysSize;
     this.D = D;
     this.max = max;
@@ -540,7 +544,7 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     if (i > this.numberOfItemsInHeap) throw Error(INDEX_TOO_HIGH);
   }
 
-  private isEmpty(): boolean {
+  public isEmpty(): boolean {
     return this.numberOfItemsInHeap === 0;
   }
 
@@ -621,7 +625,7 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     return this.pq[1];
   }
 
-  private root(): (Item | null) {
+  public root(): (Item | null) {
     return this.items[this.pq[1]];
   }
 
@@ -629,6 +633,8 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   private sink(i: number): void {
     let currentIndex: number = i;
     let children: Int32Array = this.getChildrenIndices(currentIndex);
+    // TODO: This looks wrong. two while loops with the first not changing?
+    // should be an if?
     while (children[0] > 0) {
       /**
        * extremeIndex here means either the index on the heap that corresponds
@@ -730,7 +736,7 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
 
   public deleteRoot(): (Item | null) {
     const rootItem = this.items[this.pq[1]];
-    this.delete(1);
+    this.delete(this.pq[1]);
     return rootItem;
   }
 
@@ -740,6 +746,7 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
       const newItems = new Array(2 * this.arraysSize).fill(null);
       const newPQ = new Array(2 * this.arraysSize).fill(-1);
       const newQP = new Array(2 * this.arraysSize).fill(-1);
+      this.arraysSize *= 2;
       for (let i = 1; i <= this.numberOfItemsInHeap; i++) {
         newItems[i] = this.items[i];
         newPQ[i] = this.pq[i];
@@ -757,5 +764,19 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   }
 }
 
-const ternaryMaxPQ = new IndexDPQ(2, 3);
-const binaryMinPQ = new IndexDPQ(4, 2, false);
+const ternaryMaxPQ = new IndexDPQ<number>(3, 2);
+const binaryMinPQ = new IndexDPQ<number>(2, 4, false);
+
+ternaryMaxPQ.insert(4);
+ternaryMaxPQ.insert(-4);
+ternaryMaxPQ.insert(12);
+ternaryMaxPQ.insert(10);
+ternaryMaxPQ.insert(56);
+ternaryMaxPQ.insert(3);
+ternaryMaxPQ.insert(4);
+ternaryMaxPQ.insert(-1);
+ternaryMaxPQ.insert(23);
+while (!ternaryMaxPQ.isEmpty()) {
+  const deleted: number | null = ternaryMaxPQ.deleteRoot();
+  console.log(`Deleted Root: ${deleted}`);
+}

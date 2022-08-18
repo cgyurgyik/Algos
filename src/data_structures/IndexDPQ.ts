@@ -503,6 +503,8 @@ const INDEX_TOO_LOW = 'Index is lower than 1 NOTE: arrays are 1-indexed.';
 const COMPARISON_FAILED = 'ERROR: Comparison failed';
 // eslint-disable-next-line max-len
 const INTIAL_ARRAY_SIZE_TOO_SMALL = 'ERROR: Initial arrays size must be at least 2';
+// eslint-disable-next-line max-len
+const INVALID_CONSTRUCTOR = 'ERROR: Invalid constructor. Please provide an initial array XOR an initial size for the structure';
 /**
  * @description define an interface for comparable objects
  * methods based off of ecmascript spec
@@ -513,14 +515,22 @@ interface Comparable<T> {
     isLessThan: (value: T) => boolean;
 }
 
+type IndexDPQProps<T> = {
+  'D': number,
+  'max': boolean,
+  'initialArraysSize'?: number,
+  'array'?: T[],
+}
+
 class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
-  private pq: number[];
+  // NOTE: Definite Assignment Assertions
+  private pq!: number[];
 
-  private qp: number[];
+  private qp!: number[];
 
-  private items: (Item | null)[];
+  private items!: (Item | null)[];
 
-  private arraysSize: number;
+  private arraysSize!: number;
 
   private numberOfItemsInHeap: number = 0;
 
@@ -528,16 +538,115 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
 
   private max: boolean;
 
-  constructor(D: number, initialArraysSize: number, max: boolean = true) {
-    // TODO: is there a limit on how large the initial arrays size should be?
-    if (initialArraysSize < 2) throw new Error(INTIAL_ARRAY_SIZE_TOO_SMALL);
-    this.arraysSize = initialArraysSize;
-    this.D = D;
-    this.max = max;
-    this.pq = new Array(initialArraysSize).fill(-1);
-    this.qp = new Array(initialArraysSize).fill(-1);
-    this.items = new Array(initialArraysSize).fill(null);
+  constructor(props: IndexDPQProps<Item>) {
+    // check props to deal with all cases
+    this.D = props.D;
+    this.max = props.max;
+    const { initialArraysSize, array } = props;
+    // We want either initialArraysSize or array but not both
+    if ((array !== undefined) === (initialArraysSize !== undefined)) {
+      throw Error(`ERROR: ${INVALID_CONSTRUCTOR}`);
+    }
+    if (initialArraysSize !== undefined) {
+      // TODO: is there a limit on how large the initial arrays size should be?
+      if (initialArraysSize < 2) throw new Error(INTIAL_ARRAY_SIZE_TOO_SMALL);
+      this.arraysSize = initialArraysSize;
+      this.pq = new Array(initialArraysSize).fill(-1);
+      this.qp = new Array(initialArraysSize).fill(-1);
+      this.items = new Array(initialArraysSize).fill(null);
+    } else if (array !== undefined) {
+      // construct heap from array
+      this.arraysSize = array.length + 1;
+      this.numberOfItemsInHeap = array.length;
+      this.items = new Array(this.arraysSize);
+      this.items[0] = null;
+      this.pq = new Array(this.arraysSize);
+      this.pq[0] = -1;
+      this.qp = new Array(this.arraysSize);
+      this.qp[0] = -1;
+      for (let i = 1; i < this.arraysSize; i++) {
+        this.items[i] = array[i - 1];
+        this.pq[i] = i;
+        this.qp[i] = i;
+      }
+      // 'inductively' starting at the trivial basecase of leaf nodes,
+      // build up heap invariant
+      const start = this.findLastInternalNode();
+      for (let j = start; j > 0; j--) {
+        this.sink(j);
+      }
+    }
   }
+
+  // NOTE: this doesn't work because order of parameters doesn't allow for
+  // passing initialArraysSize or array in 3rd param
+  // constructor(
+  //   D: number,
+  //   max: boolean,
+  //   initialArraysSize?: number,
+  //   array?: Item[],
+  // ) {
+  //   // We want either initialArraysSize or array but not both
+  //   if ((array !== undefined) === (initialArraysSize !== undefined)) {
+  //     throw Error(`ERROR: ${INVALID_CONSTRUCTOR}`);
+  //   }
+  //   this.D = D;
+  //   this.max = max;
+  //   if (initialArraysSize !== undefined) {
+  //     // TODO: is there a limit on how large the initial arrays size should be?
+  //     if (initialArraysSize < 2) throw new Error(INTIAL_ARRAY_SIZE_TOO_SMALL);
+  //     this.arraysSize = initialArraysSize;
+  //     this.pq = new Array(initialArraysSize).fill(-1);
+  //     this.qp = new Array(initialArraysSize).fill(-1);
+  //     this.items = new Array(initialArraysSize).fill(null);
+  //   } else if (array !== undefined) {
+  //     // construct heap from array
+  //     this.arraysSize = array.length + 1;
+  //     this.items = new Array(this.arraysSize);
+  //     this.items[0] = null;
+  //     this.pq = new Array(this.arraysSize);
+  //     this.pq[0] = -1;
+  //     this.qp = new Array(this.arraysSize);
+  //     this.pq[0] = -1;
+  //     for (let i = 1; i < this.arraysSize; i++) {
+  //       this.items[i] = array[i - 1];
+  //       this.pq[i] = i;
+  //       this.qp[i] = i;
+  //     }
+  //     // 'inductively' starting at the trivial basecase of leaf nodes,
+  //     // build up heap invariant
+  //     const start = this.findLastInternalNode();
+  //     for (let j = start; j > 0; j--) {
+  //       this.sink(j);
+  //     }
+  //   }
+  // }
+
+  // NOTE: Factory can't take into account generic passed in
+  // static withArray(D: number, max: boolean, array: Item[]) {
+  //   const indexDPQ = new IndexDPQ()<Item>;
+  //   indexDPQ.D = D;
+  //   indexDPQ.max = max;
+  //   // construct heap from array
+  //   indexDPQ.arraysSize = array.length + 1;
+  //   indexDPQ.items = new Array(indexDPQ.arraysSize);
+  //   indexDPQ.items[0] = null;
+  //   indexDPQ.pq = new Array(indexDPQ.arraysSize);
+  //   indexDPQ.pq[0] = -1;
+  //   indexDPQ.qp = new Array(indexDPQ.arraysSize);
+  //   indexDPQ.pq[0] = -1;
+  //   for (let i = 1; i < indexDPQ.arraysSize; i++) {
+  //     indexDPQ.items[i] = array[i - 1];
+  //     indexDPQ.pq[i] = i;
+  //     indexDPQ.qp[i] = i;
+  //   }
+  //   // 'inductively' starting at the trivial basecase of leaf nodes,
+  //   // build up heap invariant
+  //   const start = indexDPQ.findLastInternalNode();
+  //   for (let j = start; j > 0; j--) {
+  //     indexDPQ.sink(j);
+  //   }
+  // }
 
   private validateIndex(i: number): void {
     if (i < 1) throw Error(`ERROR: index ${i}: ${INDEX_TOO_LOW}`);
@@ -553,6 +662,9 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   // TODO: should invoker of compare check for inbounds indices or
   // should compare? It seems that we already might be validating
   // before calling compare. Avoid double checking
+  // TODO: the position of currIndex on compare calls is inconsistent between
+  // sink, swim, etc. The idea is that a true return should imply action, but is
+  // there a way to make calling compare more intutitive?
   private compare(i: number, j: number): boolean {
     /**
       * check if i and j are in bounds (if they have a non -1 value in pq
@@ -670,15 +782,12 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   // TODO: figure out what the minimum checks are. will parentIndex ever be too
   // large (out of bounds in the other direction) for example?
   private swim(i: number): void {
-    let currentIndex = i;
-    let parentIndex: number = this.getParentIndex(currentIndex);
-    while (parentIndex > 0) {
-      if (this.compare(currentIndex, parentIndex)) {
-        this.exch(currentIndex, parentIndex);
-        currentIndex = parentIndex;
-        parentIndex = this.getParentIndex(currentIndex);
-      } else break;
-    }
+    const parentIndex: number = this.getParentIndex(i);
+    // BASE CASES: parentIndex is out of bounds or does not compare favorably
+    if (parentIndex < 1 || !this.compare(i, parentIndex)) return;
+    // RECURSIVE CASE:
+    this.exch(parentIndex, i);
+    this.swim(parentIndex);
   }
 
   public change(k: number, item: Item): void {
@@ -773,8 +882,11 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   }
 }
 
-const ternaryMaxPQ = new IndexDPQ<number>(3, 2);
-const binaryMinPQ = new IndexDPQ<number>(2, 4, false);
+const ternaryMaxPQ = new IndexDPQ<number>({
+  D: 3,
+  max: true,
+  initialArraysSize: 2,
+});
 
 ternaryMaxPQ.insert(4);
 ternaryMaxPQ.insert(-4);
@@ -788,4 +900,15 @@ ternaryMaxPQ.insert(23);
 while (!ternaryMaxPQ.isEmpty()) {
   const deleted: number | null = ternaryMaxPQ.deleteRoot();
   console.log(`Deleted Root: ${deleted}`);
+}
+
+console.log('---------------------pq built from array--------------');
+const binaryMinPQ = new IndexDPQ<number>({
+  D: 2,
+  max: false,
+  array: [1, 2, 4, 7, -1],
+});
+while (!binaryMinPQ.isEmpty()) {
+  const deleted: number | null = binaryMinPQ.deleteRoot();
+  console.log(`Deleted Root ${deleted}`);
 }

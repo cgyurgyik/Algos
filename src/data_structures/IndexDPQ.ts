@@ -523,6 +523,7 @@ type IndexDPQProps<T> = {
 }
 
 class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
+  // TODO: consider creating getters for pq, qp, and items (iterator?)
   // NOTE: Definite Assignment Assertions
   private pq!: number[];
 
@@ -884,6 +885,8 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     this.swim(this.numberOfItemsInHeap);
   }
 }
+
+export { IndexDPQ, Comparable, IndexDPQProps};
 
 const ternaryMaxPQ = new IndexDPQ<number>({
   D: 3,

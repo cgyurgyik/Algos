@@ -538,6 +538,9 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
 
   private max: boolean;
 
+  // TODO: check length of array that's passed in, in order to make sure it
+  // isn't empty
+  // Check that degree is > 0
   constructor(props: IndexDPQProps<Item>) {
     // check props to deal with all cases
     this.D = props.D;

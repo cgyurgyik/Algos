@@ -13,7 +13,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "zsh ./scripts/run-test.sh"
+    "test": "zsh ./scripts/run-test.sh",
+    "test-windows": "powershell ./scripts/run-test.ps1"
   },
   "repository": {
     "type": "git",

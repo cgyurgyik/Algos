@@ -507,11 +507,10 @@ const INTIAL_ARRAY_SIZE_TOO_SMALL = 'ERROR: Initial arrays size must be at least
 const INVALID_CONSTRUCTOR = 'ERROR: Invalid constructor. Please provide an initial array XOR an initial size for the structure';
 /**
  * @description define an interface for comparable objects
- * methods based off of ecmascript spec
+ * methods based off of ecmascript spec. Removed isLooselyEqual
+ * and isStrictlyEqual, since we don't actually need them
  */
 interface Comparable<T> {
-    isLooselyEqual: (value: T) => boolean;
-    isStrictlyEqual: (value: T) => boolean;
     isLessThan: (value: T) => boolean;
 }
 
@@ -884,37 +883,51 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     this.qp[this.numberOfItemsInHeap] = this.numberOfItemsInHeap;
     this.swim(this.numberOfItemsInHeap);
   }
+
+  /* --------------------------------- getters ------------------------------ */
+  public getHeap(): number[] {
+    // return this.pq.slice();
+    return this.pq.slice();
+  }
+
+  public getInverseMap(): number[] {
+    return this.qp.slice();
+  }
+
+  public getItems(): (Item | null)[] {
+    return this.items.slice();
+  }
 }
 
-export { IndexDPQ, Comparable, IndexDPQProps};
+export { IndexDPQ, Comparable, IndexDPQProps };
 
-const ternaryMaxPQ = new IndexDPQ<number>({
-  D: 3,
-  max: true,
-  initialArraysSize: 2,
-});
+// const ternaryMaxPQ = new IndexDPQ<number>({
+//   D: 3,
+//   max: true,
+//   initialArraysSize: 2,
+// });
 
-ternaryMaxPQ.insert(4);
-ternaryMaxPQ.insert(-4);
-ternaryMaxPQ.insert(12);
-ternaryMaxPQ.insert(10);
-ternaryMaxPQ.insert(56);
-ternaryMaxPQ.insert(3);
-ternaryMaxPQ.insert(4);
-ternaryMaxPQ.insert(-1);
-ternaryMaxPQ.insert(23);
-while (!ternaryMaxPQ.isEmpty()) {
-  const deleted: number | null = ternaryMaxPQ.deleteRoot();
-  console.log(`Deleted Root: ${deleted}`);
-}
+// ternaryMaxPQ.insert(4);
+// ternaryMaxPQ.insert(-4);
+// ternaryMaxPQ.insert(12);
+// ternaryMaxPQ.insert(10);
+// ternaryMaxPQ.insert(56);
+// ternaryMaxPQ.insert(3);
+// ternaryMaxPQ.insert(4);
+// ternaryMaxPQ.insert(-1);
+// ternaryMaxPQ.insert(23);
+// while (!ternaryMaxPQ.isEmpty()) {
+//   const deleted: number | null = ternaryMaxPQ.deleteRoot();
+//   console.log(`Deleted Root: ${deleted}`);
+// }
 
-console.log('---------------------pq built from array--------------');
-const binaryMinPQ = new IndexDPQ<number>({
-  D: 2,
-  max: false,
-  array: [1, 2, 4, 7, -1],
-});
-while (!binaryMinPQ.isEmpty()) {
-  const deleted: number | null = binaryMinPQ.deleteRoot();
-  console.log(`Deleted Root ${deleted}`);
-}
+// console.log('---------------------pq built from array--------------');
+// const binaryMinPQ = new IndexDPQ<number>({
+//   D: 2,
+//   max: false,
+//   array: [1, 2, 4, 7, -1],
+// });
+// while (!binaryMinPQ.isEmpty()) {
+//   const deleted: number | null = binaryMinPQ.deleteRoot();
+//   console.log(`Deleted Root ${deleted}`);
+// }

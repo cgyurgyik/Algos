@@ -3,7 +3,7 @@ param(
     [string]$FileName
 )
 $ValidData = $true
-$FQPath = ".\__tests__\" + $FileName.toString()
+$FQPath = ".\dist\__tests__\" + $FileName.toString()
 $FQPathExt = $FQPath + ".js"
 $JestPath = ".\node_modules\.bin\jest"
 

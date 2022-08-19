@@ -1,6 +1,6 @@
 #!/bin/zsh
-
 # check to see if test file name was not passed as argument
+#TODO: update this so that it works with the new location of tests
 if [ -z $1 ]; then
   echo -en '\n'
   echo -e "\033[0;31mMake sure to format the command properly:\033[0m"

@@ -22,6 +22,15 @@ class testComparable {
   public isLessThan(x: testComparable): boolean {
     return (this.calculateScore() < x.calculateScore());
   }
+
+  public isLooselyEqual(x: testComparable): boolean {
+    // eslint-disable-next-line eqeqeq
+    return (this == x);
+  }
+
+  public isStrictlyEqual(x: testComparable): boolean {
+    return (this === x);
+  }
 }
 
 // TODO: test very large values for D, and huge arrays and such
@@ -115,12 +124,23 @@ describe('tests for a ternary max IPQ that starts empty with valid initial'
       expect(ipq3MaxEmpty2.getItems()).toEqual(
         [null, 4, -4, 4, 3, -1, null, null, null, null, null, null, null, null, null, null],
       );
-      console.log(`heap: ${ipq3MaxEmpty2.getHeap()}`);
       expect(ipq3MaxEmpty2.getHeap()).toEqual(
         [-1, 3, 4, 1, 5, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
       );
       expect(ipq3MaxEmpty2.getInverseMap()).toEqual(
         [-1, 3, 5, 1, 2, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      );
+      /* ------------------------------ fifth delete ------------------------------ */
+      deletedRoot = ipq3MaxEmpty2.deleteRoot();
+      expect(deletedRoot).toBe(4);
+      expect(ipq3MaxEmpty2.getItems()).toEqual(
+        [null, 4, -4, -1, 3, null, null, null, null, null, null, null, null, null, null, null],
+      );
+      expect(ipq3MaxEmpty2.getHeap()).toEqual(
+        [-1, 1, 4, 2, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      );
+      expect(ipq3MaxEmpty2.getInverseMap()).toEqual(
+        [-1, 1, 3, 4, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
       );
     },
   );

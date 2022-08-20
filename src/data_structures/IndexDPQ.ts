@@ -665,6 +665,10 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     return this.numberOfItemsInHeap === 0;
   }
 
+  public getNumItems(): number {
+    return this.numberOfItemsInHeap;
+  }
+
   // TODO: should invoker of compare check for inbounds indices or
   // should compare? It seems that we already might be validating
   // before calling compare. Avoid double checking
@@ -842,10 +846,8 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     // Now sink and swim the item so that we restore the heap invariant
     this.sink(swapIndex);
     this.swim(swapIndex);
-    // TODO: check thoroughly but this takes into account the 0th element
-    // in the arrays. The +1 cancels out with the -1 from the deleted element
     // Finally resize the array if need be
-    if ((this.numberOfItemsInHeap / this.arraysSize) <= (1 / 4)) {
+    if ((this.numberOfItemsInHeap + 1 / this.arraysSize) <= (1 / 4)) {
       const newArraysSize = Math.ceil(this.arraysSize / 2);
       const newPQ = new Array(newArraysSize).fill(-1);
       const newQP = new Array(newArraysSize).fill(-1);

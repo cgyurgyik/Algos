@@ -850,6 +850,7 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     // TODO: make sure no floating point errors can happen
     if (((this.numberOfItemsInHeap + 1) / this.arraysSize) <= 0.25) {
       const newArraysSize = Math.ceil(this.arraysSize / 2);
+      this.arraysSize = newArraysSize;
       const newPQ = new Array(newArraysSize).fill(-1);
       const newQP = new Array(newArraysSize).fill(-1);
       const newItems = new Array(newArraysSize).fill(null);

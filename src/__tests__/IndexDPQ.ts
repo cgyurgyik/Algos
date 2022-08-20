@@ -145,8 +145,6 @@ describe('tests for a ternary max IPQ that starts empty with valid initial'
       /* ------------------------------ sixth delete ------------------------------ */
       deletedRoot = ipq3MaxEmpty2.deleteRoot();
       expect(deletedRoot).toBe(4);
-      console.log(ipq3MaxEmpty2.getNumItems());
-      console.log(ipq3MaxEmpty2.getItems());
       expect(ipq3MaxEmpty2.getItems()).toEqual(
         [null, 3, -4, -1, null, null, null, null],
       );
@@ -155,6 +153,32 @@ describe('tests for a ternary max IPQ that starts empty with valid initial'
       );
       expect(ipq3MaxEmpty2.getInverseMap()).toEqual(
         [-1, 1, 3, 2, -1, -1, -1, -1],
+      );
+      /* ----------------------------- seventh delete ----------------------------- */
+      deletedRoot = ipq3MaxEmpty2.deleteRoot();
+      expect(deletedRoot).toBe(3);
+      expect(ipq3MaxEmpty2.getItems()).toEqual(
+        [null, -1, -4, null, null, null, null, null],
+      );
+      expect(ipq3MaxEmpty2.getHeap()).toEqual(
+        [-1, 1, 2, -1, -1, -1, -1, -1],
+      );
+      expect(ipq3MaxEmpty2.getInverseMap()).toEqual(
+        [-1, 1, 2, -1, -1, -1, -1, -1],
+      );
+      /* ------------------------------ eighth delete ----------------------------- */
+      deletedRoot = ipq3MaxEmpty2.deleteRoot();
+      expect(deletedRoot).toBe(-1);
+      console.log(ipq3MaxEmpty2.getNumItems());
+      console.log(ipq3MaxEmpty2.getItems());
+      expect(ipq3MaxEmpty2.getItems()).toEqual(
+        [null, -4, null, null],
+      );
+      expect(ipq3MaxEmpty2.getHeap()).toEqual(
+        [-1, 1, -1, -1],
+      );
+      expect(ipq3MaxEmpty2.getInverseMap()).toEqual(
+        [-1, 1, -1, -1],
       );
     },
   );

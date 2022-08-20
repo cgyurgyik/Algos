@@ -505,6 +505,13 @@ const COMPARISON_FAILED = 'ERROR: Comparison failed';
 const INTIAL_ARRAY_SIZE_TOO_SMALL = 'ERROR: Initial arrays size must be at least 2';
 // eslint-disable-next-line max-len
 const INVALID_CONSTRUCTOR = 'ERROR: Invalid constructor. Please provide an initial array XOR an initial size for the structure';
+// eslint-disable-next-line max-len
+const NO_ROOT_TO_DELETE = 'ERROR: Heap is empty. No root present to be deleted.';
+// eslint-disable-next-line max-len
+const NO_ROOT = 'ERROR: Heap is empty. No root present.';
+// eslint-disable-next-line max-len
+const NO_ITEM_TO_CHANGE = 'ERROR: There is no Item at provided items\' index';
+
 /**
  * @description define an interface for comparable objects
  * methods based off of ecmascript spec. Kept isLooselyEqual
@@ -665,10 +672,6 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     return this.numberOfItemsInHeap === 0;
   }
 
-  public getNumItems(): number {
-    return this.numberOfItemsInHeap;
-  }
-
   // TODO: should invoker of compare check for inbounds indices or
   // should compare? It seems that we already might be validating
   // before calling compare. Avoid double checking
@@ -754,6 +757,7 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   }
 
   public root(): (Item | null) {
+    if (this.isEmpty()) throw new Error(NO_ROOT);
     return this.items[this.pq[1]];
   }
 
@@ -804,6 +808,9 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   }
 
   public change(k: number, item: Item): void {
+    if (this.items[k] === undefined || this.items[k] === null) {
+      throw new Error(`${NO_ITEM_TO_CHANGE}: ${k}`);
+    }
     this.items[k] = item;
     this.sink(this.qp[k]);
     this.swim(this.qp[k]);
@@ -848,7 +855,12 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     this.swim(swapIndex);
     // Finally resize the array if need be
     // TODO: make sure no floating point errors can happen
-    if (((this.numberOfItemsInHeap + 1) / this.arraysSize) <= 0.25) {
+    const fullRatio = ((this.numberOfItemsInHeap + 1) / this.arraysSize);
+    if (this.numberOfItemsInHeap === 0) {
+      this.pq = [];
+      this.qp = [];
+      this.items = [];
+    } else if (fullRatio <= 0.25) {
       const newArraysSize = Math.ceil(this.arraysSize / 2);
       this.arraysSize = newArraysSize;
       const newPQ = new Array(newArraysSize).fill(-1);
@@ -866,6 +878,7 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   }
 
   public deleteRoot(): (Item | null) {
+    if (this.isEmpty()) throw new Error(NO_ROOT_TO_DELETE);
     const rootItem = this.items[this.pq[1]];
     this.delete(this.pq[1]);
     return rootItem;
@@ -907,9 +920,27 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   public getItems(): (Item | null)[] {
     return this.items.slice();
   }
+
+  public getNumItems(): number {
+    return this.numberOfItemsInHeap;
+  }
 }
 
-export { IndexDPQ, Comparable, IndexDPQProps };
+// TODO: figure out how best to deal with error strings
+// (export, add to class, etc)
+export {
+  IndexDPQ,
+  Comparable,
+  IndexDPQProps,
+  INDEX_TOO_HIGH,
+  INDEX_TOO_LOW,
+  INTIAL_ARRAY_SIZE_TOO_SMALL,
+  INVALID_CONSTRUCTOR,
+  COMPARISON_FAILED,
+  NO_ROOT_TO_DELETE,
+  NO_ROOT,
+  NO_ITEM_TO_CHANGE,
+};
 
 // const ternaryMaxPQ = new IndexDPQ<number>({
 //   D: 3,

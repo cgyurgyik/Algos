@@ -70,6 +70,60 @@ describe('tests for a ternary max IPQ that starts empty with valid initial'
       expect(ipq3MaxEmpty2.root()).toBe(56);
     },
   );
+  it(
+    'should maintain the heap invariant as root is deleted and return the root Item.',
+    () => {
+      /* ------------------------------ first delete ------------------------------ */
+      let deletedRoot: (number | null) = ipq3MaxEmpty2.deleteRoot();
+      expect(deletedRoot).toBe(56);
+      expect(ipq3MaxEmpty2.getItems()).toEqual(
+        [null, 4, -4, 12, 10, 23, 3, 4, -1, null, null, null, null, null, null, null],
+      );
+      expect(ipq3MaxEmpty2.getHeap()).toEqual(
+        [-1, 5, 3, 1, 4, 2, 6, 7, 8, -1, -1, -1, -1, -1, -1, -1],
+      );
+      expect(ipq3MaxEmpty2.getInverseMap()).toEqual(
+        [-1, 3, 5, 2, 4, 1, 6, 7, 8, -1, -1, -1, -1, -1, -1, -1],
+      );
+      /* ------------------------------ second delete ----------------------------- */
+      deletedRoot = ipq3MaxEmpty2.deleteRoot();
+      expect(deletedRoot).toBe(23);
+      expect(ipq3MaxEmpty2.getItems()).toEqual(
+        [null, 4, -4, 12, 10, -1, 3, 4, null, null, null, null, null, null, null, null],
+      );
+      expect(ipq3MaxEmpty2.getHeap()).toEqual(
+        [-1, 3, 7, 1, 4, 2, 6, 5, -1, -1, -1, -1, -1, -1, -1, -1],
+      );
+      expect(ipq3MaxEmpty2.getInverseMap()).toEqual(
+        [-1, 3, 5, 1, 4, 7, 6, 2, -1, -1, -1, -1, -1, -1, -1, -1],
+      );
+      /* ------------------------------ third delete ------------------------------ */
+      deletedRoot = ipq3MaxEmpty2.deleteRoot();
+      expect(deletedRoot).toBe(12);
+      expect(ipq3MaxEmpty2.getItems()).toEqual(
+        [null, 4, -4, 4, 10, -1, 3, null, null, null, null, null, null, null, null, null],
+      );
+      expect(ipq3MaxEmpty2.getHeap()).toEqual(
+        [-1, 4, 3, 1, 5, 2, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      );
+      expect(ipq3MaxEmpty2.getInverseMap()).toEqual(
+        [-1, 3, 5, 2, 1, 4, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      );
+      /* ------------------------------ fourth delete ----------------------------- */
+      deletedRoot = ipq3MaxEmpty2.deleteRoot();
+      expect(deletedRoot).toBe(10);
+      expect(ipq3MaxEmpty2.getItems()).toEqual(
+        [null, 4, -4, 4, 3, -1, null, null, null, null, null, null, null, null, null, null],
+      );
+      console.log(`heap: ${ipq3MaxEmpty2.getHeap()}`);
+      expect(ipq3MaxEmpty2.getHeap()).toEqual(
+        [-1, 3, 4, 1, 5, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      );
+      expect(ipq3MaxEmpty2.getInverseMap()).toEqual(
+        [-1, 3, 5, 1, 2, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      );
+    },
+  );
 });
 
 // const ipq3MinEmpty1 = new IndexPQ({

@@ -507,11 +507,14 @@ const INTIAL_ARRAY_SIZE_TOO_SMALL = 'ERROR: Initial arrays size must be at least
 const INVALID_CONSTRUCTOR = 'ERROR: Invalid constructor. Please provide an initial array XOR an initial size for the structure';
 /**
  * @description define an interface for comparable objects
- * methods based off of ecmascript spec. Removed isLooselyEqual
- * and isStrictlyEqual, since we don't actually need them
+ * methods based off of ecmascript spec. Kept isLooselyEqual
+ * and isStrictlyEqual, since we use them in compare to not swap
+ * with equal values (more intuitive)
  */
 interface Comparable<T> {
     isLessThan: (value: T) => boolean;
+    isLooselyEqual: (value: T) => boolean;
+    isStrictlyEqual:(value: T) => boolean;
 }
 
 type IndexDPQProps<T> = {
@@ -690,10 +693,13 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
       /**
          * logical XOR (e.g. minHeap aka max is false and compare(5,4) should
          * return false)
+         * // NOTE: we use <= to prevent swaps with items of equal value
+         * this seems more intuitive
          */
-      if (item2 !== null) return (item1 < item2) !== this.max;
+      if (item2 !== null) return (item1 <= item2) !== this.max;
     } else if (item1 !== null && item2 !== null) {
-      return item1.isLessThan(item2) !== this.max;
+      return (item1.isLessThan(item2) || item1.isStrictlyEqual(item2))
+      !== this.max;
     }
     throw new Error(COMPARISON_FAILED);
   }

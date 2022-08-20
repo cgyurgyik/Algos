@@ -847,7 +847,8 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     this.sink(swapIndex);
     this.swim(swapIndex);
     // Finally resize the array if need be
-    if ((this.numberOfItemsInHeap + 1 / this.arraysSize) <= (1 / 4)) {
+    // TODO: make sure no floating point errors can happen
+    if (((this.numberOfItemsInHeap + 1) / this.arraysSize) <= 0.25) {
       const newArraysSize = Math.ceil(this.arraysSize / 2);
       const newPQ = new Array(newArraysSize).fill(-1);
       const newQP = new Array(newArraysSize).fill(-1);

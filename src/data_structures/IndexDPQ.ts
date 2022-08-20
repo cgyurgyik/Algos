@@ -106,8 +106,8 @@
 /* -------------------------------------------------------------------------- */
 /* ------------------------------ constructors ------------------------------ */
 /**
- *[] IndexDPQ(int initialArraysSize, int D, boolean max = true)
- * (create a priority queue with initial capacity initialArraysSize, using a
+ *[] IndexDPQ(int initialNumberOfItems, int D, boolean max = true)
+ * (create a priority queue with initial capacity initialNumberOfItems, using a
  * d-ary tree/heap,
  *  maxpq if max == true otherwise minpq)
  *
@@ -121,7 +121,7 @@
  * unioned with the primitive types that are comparable with the < operator
  * (bigint, number, string)
  * -[] define private properties on the class that are the three arrays we
- * need, the size of the arrays (initialized by initialArraysSize), and the
+ * need, the size of the arrays (initialized by initialNumberOfItems), and the
  * number of elements in the heap
  *
  * time complexity:
@@ -502,15 +502,19 @@ const INDEX_TOO_LOW = 'Index is lower than 1 NOTE: arrays are 1-indexed.';
 // eslint-disable-next-line max-len
 const COMPARISON_FAILED = 'ERROR: Comparison failed';
 // eslint-disable-next-line max-len
-const INTIAL_ARRAY_SIZE_TOO_SMALL = 'ERROR: Initial arrays size must be at least 2';
+const INTIAL_NUMBER_OF_ITEMS_TOO_SMALL = 'ERROR: initialNumberOfItems must be at least 0';
 // eslint-disable-next-line max-len
-const INVALID_CONSTRUCTOR = 'ERROR: Invalid constructor. Please provide an initial array XOR an initial size for the structure';
+const INVALID_CONSTRUCTOR_OUT_OF_SYNC = 'ERROR: Invalid constructor. When providing an array, either do not provide an initialNumberOfItems or match it to the array\'s length.';
+// eslint-disable-next-line max-len
+const INVALID_CONSTRUCTOR_MISSING_ARGUMENTS = 'ERROR: Invalid constructor. Please provide an initialNumberOfItems or an array to seed the priority queue.';
 // eslint-disable-next-line max-len
 const NO_ROOT_TO_DELETE = 'ERROR: Heap is empty. No root present to be deleted.';
 // eslint-disable-next-line max-len
 const NO_ROOT = 'ERROR: Heap is empty. No root present.';
 // eslint-disable-next-line max-len
 const NO_ITEM_TO_CHANGE = 'ERROR: There is no Item at provided items\' index';
+// eslint-disable-next-line max-len
+const DEGREE_TOO_LOW = 'ERROR: your degree (maximum amount of subtrees per node) is too low';
 
 /**
  * @description define an interface for comparable objects
@@ -527,10 +531,11 @@ interface Comparable<T> {
 type IndexDPQProps<T> = {
   'D': number,
   'max': boolean,
-  'initialArraysSize'?: number,
+  'initialNumberOfItems'?: number,
   'array'?: T[],
 }
-
+// TODO: what would it take to hide the fact that we are using 1-index behind
+// the scenes?
 class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   // TODO: consider creating getters for pq, qp, and items (iterator?)
   // NOTE: Definite Assignment Assertions
@@ -548,70 +553,81 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
 
   private max: boolean;
 
-  // TODO: check length of array that's passed in, in order to make sure it
-  // isn't empty
-  // Check that degree is > 0
+  // TODO: is there a limit on how large the initial arrays size should be?
   constructor(props: IndexDPQProps<Item>) {
-    // check props to deal with all cases
-    this.D = props.D;
-    this.max = props.max;
-    const { initialArraysSize, array } = props;
-    // We want either initialArraysSize or array but not both
-    if ((array !== undefined) === (initialArraysSize !== undefined)) {
-      throw Error(`ERROR: ${INVALID_CONSTRUCTOR}`);
-    }
-    if (initialArraysSize !== undefined) {
-      // TODO: is there a limit on how large the initial arrays size should be?
-      if (initialArraysSize < 2) throw new Error(INTIAL_ARRAY_SIZE_TOO_SMALL);
-      this.arraysSize = initialArraysSize;
-      this.pq = new Array(initialArraysSize).fill(-1);
-      this.qp = new Array(initialArraysSize).fill(-1);
-      this.items = new Array(initialArraysSize).fill(null);
-    } else if (array !== undefined) {
+    const {
+      D, max, initialNumberOfItems, array,
+    } = props;
+    // NOTE: Degree D is allowed to be greater than the lengths of array or
+    // initialNumberOfItems
+    if (D < 1) throw new Error(DEGREE_TOO_LOW);
+    this.D = D;
+    this.max = max;
+    if (array !== undefined) {
+      // either initialNumberOfItems is in sync with array.length or
       // construct heap from array
-      this.arraysSize = array.length + 1;
-      this.numberOfItemsInHeap = array.length;
-      this.items = new Array(this.arraysSize);
-      this.items[0] = null;
-      this.pq = new Array(this.arraysSize);
-      this.pq[0] = -1;
-      this.qp = new Array(this.arraysSize);
-      this.qp[0] = -1;
-      for (let i = 1; i < this.arraysSize; i++) {
-        this.items[i] = array[i - 1];
-        this.pq[i] = i;
-        this.qp[i] = i;
+      if ((initialNumberOfItems !== undefined)
+      && (initialNumberOfItems !== array.length)) {
+        throw Error(`ERROR: ${INVALID_CONSTRUCTOR_OUT_OF_SYNC}`);
       }
-      // 'inductively' starting at the trivial basecase of leaf nodes,
-      // build up heap invariant
-      const start = this.findLastInternalNode();
-      for (let j = start; j > 0; j--) {
-        this.sink(j);
-      }
+      this.buildHeap(array);
+    } else if (initialNumberOfItems === undefined) {
+      throw new Error(INVALID_CONSTRUCTOR_MISSING_ARGUMENTS);
+    } else if (initialNumberOfItems < 0) {
+      throw new Error(INTIAL_NUMBER_OF_ITEMS_TOO_SMALL);
+    } else {
+      // array was not provided, and initialNumberOfItems is valid
+      this.arraysSize = initialNumberOfItems + 1;
+      this.numberOfItemsInHeap = 0;
+      this.items = new Array(this.arraysSize).fill(null);
+      this.pq = new Array(this.arraysSize).fill(-1);
+      this.qp = new Array(this.arraysSize).fill(-1);
+    }
+  }
+
+  buildHeap(array: Item[]) {
+    this.arraysSize = array.length + 1;
+    this.numberOfItemsInHeap = array.length;
+    this.items = new Array(this.arraysSize);
+    this.items[0] = null;
+    this.pq = new Array(this.arraysSize);
+    this.pq[0] = -1;
+    this.qp = new Array(this.arraysSize);
+    this.qp[0] = -1;
+    for (let i = 1; i < this.arraysSize; i++) {
+      this.items[i] = array[i - 1];
+      this.pq[i] = i;
+      this.qp[i] = i;
+    }
+    // 'inductively' starting at the trivial basecase of leaf nodes,
+    // build up heap invariant
+    const start = this.findLastInternalNode();
+    for (let j = start; j > 0; j--) {
+      this.sink(j);
     }
   }
 
   // NOTE: this doesn't work because order of parameters doesn't allow for
-  // passing initialArraysSize or array in 3rd param
+  // passing initialNumberOfItems or array in 3rd param
   // constructor(
   //   D: number,
   //   max: boolean,
-  //   initialArraysSize?: number,
+  //   initialNumberOfItems?: number,
   //   array?: Item[],
   // ) {
-  //   // We want either initialArraysSize or array but not both
-  //   if ((array !== undefined) === (initialArraysSize !== undefined)) {
+  //   // We want either initialNumberOfItems or array but not both
+  //   if ((array !== undefined) === (initialNumberOfItems !== undefined)) {
   //     throw Error(`ERROR: ${INVALID_CONSTRUCTOR}`);
   //   }
   //   this.D = D;
   //   this.max = max;
-  //   if (initialArraysSize !== undefined) {
+  //   if (initialNumberOfItems !== undefined) {
   //     // TODO: is there a limit on how large the initial arrays size should be?
-  //     if (initialArraysSize < 2) throw new Error(INTIAL_ARRAY_SIZE_TOO_SMALL);
-  //     this.arraysSize = initialArraysSize;
-  //     this.pq = new Array(initialArraysSize).fill(-1);
-  //     this.qp = new Array(initialArraysSize).fill(-1);
-  //     this.items = new Array(initialArraysSize).fill(null);
+  //     if (initialNumberOfItems < 2) throw new Error(INTIAL_ARRAY_SIZE_TOO_SMALL);
+  //     this.arraysSize = initialNumberOfItems;
+  //     this.pq = new Array(initialNumberOfItems).fill(-1);
+  //     this.qp = new Array(initialNumberOfItems).fill(-1);
+  //     this.items = new Array(initialNumberOfItems).fill(null);
   //   } else if (array !== undefined) {
   //     // construct heap from array
   //     this.arraysSize = array.length + 1;
@@ -819,6 +835,9 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   // TODO: if deleteRoot returns Item and delete is public, what is the logic
   // for not returning an Item on delete?
   // TODO: revisit to see if you can skip any steps
+  // TODO: currently when you delete the last item you don't shrink the arrays
+  // beyond the initial array size set upon construction. Note sure if there
+  // should be a way to reset the arrays size
   public delete(k: number): void {
     this.validateIndex(k);
     const swapIndex = this.qp[k];
@@ -855,12 +874,9 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     this.swim(swapIndex);
     // Finally resize the array if need be
     // TODO: make sure no floating point errors can happen
+    // TODO: simplify the logic for resizing if possible
     const fullRatio = ((this.numberOfItemsInHeap + 1) / this.arraysSize);
-    if (this.numberOfItemsInHeap === 0) {
-      this.pq = [];
-      this.qp = [];
-      this.items = [];
-    } else if (fullRatio <= 0.25) {
+    if (fullRatio <= 0.25) {
       const newArraysSize = Math.ceil(this.arraysSize / 2);
       this.arraysSize = newArraysSize;
       const newPQ = new Array(newArraysSize).fill(-1);
@@ -945,7 +961,7 @@ export {
 // const ternaryMaxPQ = new IndexDPQ<number>({
 //   D: 3,
 //   max: true,
-//   initialArraysSize: 2,
+//   initialNumberOfItems: 2,
 // });
 
 // ternaryMaxPQ.insert(4);

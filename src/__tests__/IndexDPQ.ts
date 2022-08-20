@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 import { describe, expect, it } from '@jest/globals';
 import {
-  IndexDPQ, Comparable, INDEX_TOO_LOW, NO_ROOT_TO_DELETE, NO_ROOT, NO_ITEM_TO_CHANGE,
+  IndexDPQ, Comparable, INDEX_TOO_LOW, NO_ROOT_TO_DELETE, NO_ROOT, NO_ITEM_TO_CHANGE, INDEX_TOO_HIGH,
 } from '../data_structures/IndexDPQ';
 
 class testComparable {
@@ -212,8 +212,30 @@ describe('tests for a ternary max IPQ that starts empty with valid initial'
   it('should throw an error when trying to grab the root when the heap is empty', () => {
     expect(() => { ipq3MaxEmpty2.root(); }).toThrowError(NO_ROOT);
   });
-  // TODO: change(k, item), delete(k), build heap constructor, heapsort
+  /* ------------------------ insert to test delete(k) ------------------------ */
+  it('should, when given an items\' index, delete a specific item while maintaining the heap invariant', () => {
+    ipq3MaxEmpty2.insert(5);
+    ipq3MaxEmpty2.insert(4);
+    ipq3MaxEmpty2.insert(3);
+    ipq3MaxEmpty2.insert(2);
+    ipq3MaxEmpty2.insert(1);
+    ipq3MaxEmpty2.delete(2);
+    expect(ipq3MaxEmpty2.getItems()).toEqual(
+      [null, 5, 1, 3, 2, null, null, null],
+    );
+    expect(ipq3MaxEmpty2.getHeap()).toEqual(
+      [-1, 1, 2, 3, 4, -1, -1, -1],
+    );
+    expect(ipq3MaxEmpty2.getInverseMap()).toEqual(
+      [-1, 1, 2, 3, 4, -1, -1, -1],
+    );
+  });
+  it('should throw an error when a client tries to delete at an items\' index that is invalid', () => {
+    expect(() => { ipq3MaxEmpty2.delete(0); }).toThrowError(INDEX_TOO_LOW);
+    expect(() => { ipq3MaxEmpty2.delete(100); }).toThrowError(INDEX_TOO_HIGH);
+  });
 });
+// TODO: build heap constructor, heapsort
 
 // const ipq3MinEmpty1 = new IndexPQ({
 //   D: 3,

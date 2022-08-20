@@ -8,9 +8,9 @@ $FQPathExt = $FQPath + ".js"
 $JestPath = ".\node_modules\.bin\jest"
 
 
-Write-Host $FQPath
-Write-Host $FQPathExt
-Write-Host $JestPath
+# Write-Host $FQPath
+# Write-Host $FQPathExt
+# Write-Host $JestPath
 
 
 if(($FileName -eq $null) -or ($FileName -eq ''))

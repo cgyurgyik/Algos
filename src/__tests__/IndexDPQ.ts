@@ -4,7 +4,7 @@ import {
   IndexDPQ, Comparable, INDEX_TOO_LOW, NO_ROOT_TO_DELETE, NO_ROOT, NO_ITEM_TO_CHANGE, INDEX_TOO_HIGH,
 } from '../data_structures/IndexDPQ';
 
-class testComparable {
+class TestComparable {
   private name: string;
 
   private v2: Uint32Array;
@@ -17,20 +17,24 @@ class testComparable {
     this.donation = donation;
   }
 
+  public clone(): TestComparable {
+    return new TestComparable(this.name, this.v2, this.donation);
+  }
+
   private calculateScore(): number {
     return (this.name[0] ? this.name.charCodeAt(0) * this.donation + this.v2[0] - this.v2[1] : 0);
   }
 
-  public isLessThan(x: testComparable): boolean {
+  public isLessThan(x: TestComparable): boolean {
     return (this.calculateScore() < x.calculateScore());
   }
 
-  public isLooselyEqual(x: testComparable): boolean {
+  public isLooselyEqual(x: TestComparable): boolean {
     // eslint-disable-next-line eqeqeq
     return (this == x);
   }
 
-  public isStrictlyEqual(x: testComparable): boolean {
+  public isStrictlyEqual(x: TestComparable): boolean {
     return (this === x);
   }
 }
@@ -183,6 +187,7 @@ describe('tests for a ternary max IPQ that starts empty with valid initial'
   it('should return the root when we ask for it so long as it exists', () => {
     expect(ipq3MaxEmpty2.root()).toBe(56);
   });
+  // TODO: add contains and rootIndex
   it('should maintain the heap invariant as root is deleted and return the root Item.', () => {
     /* ------------------------------ first delete ------------------------------ */
     let deletedRoot: (number | null) = ipq3MaxEmpty2.deleteRoot();

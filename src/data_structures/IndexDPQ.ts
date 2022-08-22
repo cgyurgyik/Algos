@@ -520,12 +520,19 @@ const DEGREE_TOO_LOW = 'ERROR: your degree (maximum amount of subtrees per node)
  * @description define an interface for comparable objects
  * methods based off of ecmascript spec. Kept isLooselyEqual
  * and isStrictlyEqual, since we use them in compare to not swap
- * with equal values (more intuitive)
+ * with equal values (more intuitive).
+ * // NOTE: added clone function to return copy of Item instead
+ * of reference (we don't want client to modify value of Item
+ * without going through the change method). Given that typescript
+ * doesn't allow for multiple constructors, I didn't want to force
+ * Items to have a clone constructor (where you pass in an instance
+ * and it creates a new instance with the same properties).
  */
 interface Comparable<T> {
     isLessThan: (value: T) => boolean;
     isLooselyEqual: (value: T) => boolean;
     isStrictlyEqual:(value: T) => boolean;
+    clone: () => T;
 }
 
 type IndexDPQProps<T> = {
@@ -764,11 +771,11 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     return (1 - (this.D ** (height + 1))) / (1 - this.D);
   }
 
-  private contains(k: number): boolean {
+  public contains(k: number): boolean {
     return this.qp[k] !== -1;
   }
 
-  private rootIndex(): number {
+  public rootIndex(): number {
     return this.pq[1];
   }
 
@@ -937,9 +944,22 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     return this.items.slice();
   }
 
+  public getItem(i: number): Item | null {
+    this.validateIndex(i);
+    const item = this.items[i];
+    if (item === null) throw new Error(INDEX_TOO_HIGH);
+    if (typeof item === 'number'
+    || typeof item === 'bigint'
+    || typeof item === 'string') {
+      return item;
+    }
+    return item.clone();
+  }
+
   public getNumItems(): number {
     return this.numberOfItemsInHeap;
   }
+  // TODO: add a method that adds an iterator to go through each Item in items
 }
 
 // TODO: figure out how best to deal with error strings
@@ -950,8 +970,10 @@ export {
   IndexDPQProps,
   INDEX_TOO_HIGH,
   INDEX_TOO_LOW,
-  INTIAL_ARRAY_SIZE_TOO_SMALL,
-  INVALID_CONSTRUCTOR,
+  INTIAL_NUMBER_OF_ITEMS_TOO_SMALL,
+  INVALID_CONSTRUCTOR_MISSING_ARGUMENTS,
+  INVALID_CONSTRUCTOR_OUT_OF_SYNC,
+  DEGREE_TOO_LOW,
   COMPARISON_FAILED,
   NO_ROOT_TO_DELETE,
   NO_ROOT,

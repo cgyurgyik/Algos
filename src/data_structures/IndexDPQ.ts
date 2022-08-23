@@ -541,8 +541,7 @@ type IndexDPQProps<T> = {
   'initialNumberOfItems'?: number,
   'array'?: T[],
 }
-// TODO: what would it take to hide the fact that we are using 1-index behind
-// the scenes?
+// TODO: revisit iterator at some point
 class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   // TODO: consider creating getters for pq, qp, and items (iterator?)
   // NOTE: Definite Assignment Assertions
@@ -592,7 +591,7 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     }
   }
 
-  buildHeap(array: Item[]) {
+  private buildHeap(array: Item[]) {
     this.arraysSize = array.length + 1;
     this.numberOfItemsInHeap = array.length;
     this.items = new Array(this.arraysSize);
@@ -959,7 +958,6 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   public getNumItems(): number {
     return this.numberOfItemsInHeap;
   }
-  // TODO: add a method that adds an iterator to go through each Item in items
 }
 
 // TODO: figure out how best to deal with error strings

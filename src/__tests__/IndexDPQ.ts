@@ -4,7 +4,7 @@ import {
   IndexDPQ, Comparable, INDEX_TOO_LOW, NO_ROOT_TO_DELETE, NO_ROOT, NO_ITEM_TO_CHANGE, INDEX_TOO_HIGH,
 } from '../data_structures/IndexDPQ';
 
-class TestComparable {
+class TestItem {
   private name: string;
 
   private v2: Uint32Array;
@@ -17,24 +17,24 @@ class TestComparable {
     this.donation = donation;
   }
 
-  public clone(): TestComparable {
-    return new TestComparable(this.name, this.v2, this.donation);
+  public clone(): TestItem {
+    return new TestItem(this.name, this.v2, this.donation);
   }
 
   private calculateScore(): number {
     return (this.name[0] ? this.name.charCodeAt(0) * this.donation + this.v2[0] - this.v2[1] : 0);
   }
 
-  public isLessThan(x: TestComparable): boolean {
+  public isLessThan(x: TestItem): boolean {
     return (this.calculateScore() < x.calculateScore());
   }
 
-  public isLooselyEqual(x: TestComparable): boolean {
+  public isLooselyEqual(x: TestItem): boolean {
     // eslint-disable-next-line eqeqeq
     return (this == x);
   }
 
-  public isStrictlyEqual(x: TestComparable): boolean {
+  public isStrictlyEqual(x: TestItem): boolean {
     return (this === x);
   }
 }
@@ -187,7 +187,8 @@ describe('tests for a ternary max IPQ that starts empty with valid initial'
   it('should return the root when we ask for it so long as it exists', () => {
     expect(ipq3MaxEmpty2.root()).toBe(56);
   });
-  // TODO: add contains and rootIndex
+  // TODO: test getItem(index)
+  // TODO: test contains, rootIndex, and iterator
   it('should maintain the heap invariant as root is deleted and return the root Item.', () => {
     /* ------------------------------ first delete ------------------------------ */
     let deletedRoot: (number | null) = ipq3MaxEmpty2.deleteRoot();
@@ -301,6 +302,7 @@ describe('tests for a ternary max IPQ that starts empty with valid initial'
   it('should throw an error when trying to grab the root when the heap is empty', () => {
     expect(() => { ipq3MaxEmpty2.root(); }).toThrowError(NO_ROOT);
   });
+  // TODO: test contains, rootIndex, and iterator when empty
   /* ------------------------ insert to test delete(k) ------------------------ */
   // NOTE: you're building off of the initial pq which has the initialNumberOfItems set to 2
   // after deleting all items it's still has the same arraysSize of 3

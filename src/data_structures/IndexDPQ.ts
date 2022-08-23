@@ -497,6 +497,12 @@
 // heap index)
 // TODO: clean up returning null versus throwing error when getting items and
 // root. Should be consistent. Also, check that we're returning copies always
+// TODO: Think about this: 'For big heaps and using virtual memory, storing
+// elements in an array according to the above scheme is inefficient:
+// (almost) every level is in a different page. B-heaps are binary heaps
+// that keep subtrees in a single page, reducing the number of pages accessed
+//  by up to a factor of ten.'
+
 // eslint-disable-next-line max-len
 const INDEX_TOO_HIGH = 'Index is greater than the number of items NOTE: arrays are 1-indexed.';
 // eslint-disable-next-line max-len
@@ -593,7 +599,7 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     }
   }
 
-  private buildHeap(array: Item[]) {
+  private buildHeap(array: Item[]): void {
     this.arraysSize = array.length + 1;
     this.numberOfItemsInHeap = array.length;
     this.items = new Array(this.arraysSize);
@@ -615,6 +621,26 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     }
   }
 
+  // TODO: think about when we need to return copies given that it is O(n) to
+  // copy it won't change time order of growth but it's still extra work and
+  // complexity here
+  public heapSort(): void {
+    let endOfUnsorted = this.numberOfItemsInHeap;
+    // while endOfUnsorted pointer is greater than 0
+    while (endOfUnsorted > 1) {
+      // exchange root with last unsorted item
+      this.exch(1, endOfUnsorted);
+      // decrement endOfUnsorted pointer
+      endOfUnsorted--;
+      // sink new root
+      this.sink(1, endOfUnsorted);
+    }
+    // now you have the heap in reverse sorted order
+    // TODO: check for better solution
+    for (let i = 1; i <= Math.floor(this.numberOfItemsInHeap / 2); i++) {
+      this.exch(i, this.numberOfItemsInHeap - i + 1);
+    }
+  }
   // NOTE: this doesn't work because order of parameters doesn't allow for
   // passing initialNumberOfItems or array in 3rd param
   // constructor(
@@ -694,6 +720,36 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
 
   public isEmpty(): boolean {
     return this.numberOfItemsInHeap === 0;
+  }
+
+  /* --------------------------------- getters ------------------------------ */
+  public getHeap(): number[] {
+    // return this.pq.slice();
+    return this.pq.slice();
+  }
+
+  public getInverseMap(): number[] {
+    return this.qp.slice();
+  }
+
+  public getItems(): (Item | null)[] {
+    return this.items.slice();
+  }
+
+  public getItem(i: number): Item | null {
+    this.validateIndex(i);
+    const item = this.items[i];
+    if (item === null) throw new Error(INDEX_TOO_HIGH);
+    if (typeof item === 'number'
+    || typeof item === 'bigint'
+    || typeof item === 'string') {
+      return item;
+    }
+    return item.clone();
+  }
+
+  public getNumItems(): number {
+    return this.numberOfItemsInHeap;
   }
 
   // TODO: should invoker of compare check for inbounds indices or
@@ -795,7 +851,10 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   }
 
   // TODO: review for accuracy and optimization
-  private sink(i: number): void {
+  // NOTE: to allow reuse by heapsort, we add the second parameter
+  // with a default. That way we can make sink stop before it hits
+  // the sorted members of the array
+  private sink(i: number, end: number = this.numberOfItemsInHeap): void {
     let currentIndex: number = i;
     const childrenIndices: Int32Array = this.getChildrenIndices(currentIndex);
     const validChildrenIndices: number[] = [];
@@ -803,7 +862,7 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
       const currChildIndex: number = childrenIndices[j];
       // TODO: consider making a function that validates but returns boolean
       // instead of throwing error when invalid
-      if (currChildIndex > 0 && currChildIndex <= this.numberOfItemsInHeap) {
+      if (currChildIndex > 0 && currChildIndex <= end) {
         validChildrenIndices.push(currChildIndex);
       }
     }
@@ -824,7 +883,7 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
       if (this.compare(extremeIndex, currentIndex)) {
         this.exch(extremeIndex, currentIndex);
         currentIndex = extremeIndex;
-        this.sink(currentIndex);
+        this.sink(currentIndex, end);
       }
     }
   }
@@ -938,36 +997,6 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     this.pq[this.numberOfItemsInHeap] = this.numberOfItemsInHeap;
     this.qp[this.numberOfItemsInHeap] = this.numberOfItemsInHeap;
     this.swim(this.numberOfItemsInHeap);
-  }
-
-  /* --------------------------------- getters ------------------------------ */
-  public getHeap(): number[] {
-    // return this.pq.slice();
-    return this.pq.slice();
-  }
-
-  public getInverseMap(): number[] {
-    return this.qp.slice();
-  }
-
-  public getItems(): (Item | null)[] {
-    return this.items.slice();
-  }
-
-  public getItem(i: number): Item | null {
-    this.validateIndex(i);
-    const item = this.items[i];
-    if (item === null) throw new Error(INDEX_TOO_HIGH);
-    if (typeof item === 'number'
-    || typeof item === 'bigint'
-    || typeof item === 'string') {
-      return item;
-    }
-    return item.clone();
-  }
-
-  public getNumItems(): number {
-    return this.numberOfItemsInHeap;
   }
 }
 

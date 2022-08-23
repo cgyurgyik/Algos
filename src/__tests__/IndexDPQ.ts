@@ -315,9 +315,10 @@ describe('tests for a ternary max IPQ that starts empty with valid initial'
   });
 });
 
-describe('tests for a ternary min IPQ that starts empty with valid initial'
-      + ' array size that works with type number', () => {
-  const ipq3MinEmpty1 = new IndexDPQ({
+/* -------------------------------- heapsort -------------------------------- */
+describe('tests heapsort for a ternary min IPQ that starts empty with valid initial'
++ ' array size that works with type number', () => {
+  const ipq3MinEmpty1 = new IndexDPQ<number>({
     D: 3,
     max: false,
     initialNumberOfItems: 1,
@@ -338,6 +339,37 @@ describe('tests for a ternary min IPQ that starts empty with valid initial'
       [-1, 5, 2, 3, 4, 1, -1, -1],
     );
   });
+  /* ------------------------ check that heapsort works ----------------------- */
+  it('should correctly sort items when heapSort is called.', () => {
+    ipq3MinEmpty1.heapSort();
+    expect(ipq3MinEmpty1.getItems()).toEqual(
+      [null, 4, -4, 12, 10, -8, null, null],
+    );
+    expect(ipq3MinEmpty1.getHeap()).toEqual(
+      [-1, 5, 2, 1, 4, 3, -1, -1],
+    );
+    expect(ipq3MinEmpty1.getInverseMap()).toEqual(
+      [-1, 3, 2, 5, 4, 1, -1, -1],
+    );
+  });
+  // FIX: inserts don't seem to be working
+  ipq3MinEmpty1.insert(10);
+  ipq3MinEmpty1.insert(77);
+  ipq3MinEmpty1.insert(-8);
+  ipq3MinEmpty1.insert(0);
+  console.log(ipq3MinEmpty1.getHeap());
+  ipq3MinEmpty1.heapSort();
+  console.log(ipq3MinEmpty1.getHeap());
+  // TODO: points to use for iterator
+  const sorted: (number | null)[] = [];
+  const heapCopy: number[] = ipq3MinEmpty1.getHeap();
+  const itemsCopy: (number | null)[] = ipq3MinEmpty1.getItems();
+  for (let i = 1; i < ipq3MinEmpty1.getNumItems(); i++) {
+    sorted.push(itemsCopy[heapCopy[i]]);
+  }
+  expect(sorted).toEqual(
+    [-8, -8, -4, 0, 4, 10, 10, 12, 77],
+  );
 });
 /* --------------------------------- strings -------------------------------- */
 describe('tests for a priority queue that compares strings', () => {
@@ -527,7 +559,11 @@ describe('tests that right errors get thrown for invalid construction.', () => {
   /* ------------- neither array nor initialNumberOfItems provided ------------ */
   expect(() => { new IndexDPQ<number>({ D: 3, max: true }); }).toThrowError(INVALID_CONSTRUCTOR_MISSING_ARGUMENTS);
   /* --------------- array and initialNumberOfItems out of sync --------------- */
-  expect(() => { new IndexDPQ<number>({ D: 3, max: true, initialNumberOfItems: 10, array: [] }); }).toThrowError(INVALID_CONSTRUCTOR_OUT_OF_SYNC);
+  expect(() => {
+    new IndexDPQ<number>({
+      D: 3, max: true, initialNumberOfItems: 10, array: [],
+    });
+  }).toThrowError(INVALID_CONSTRUCTOR_OUT_OF_SYNC);
   /* ---------------------- initialNumberOfItems too low ---------------------- */
   expect(() => { new IndexDPQ<number>({ D: 3, max: true, initialNumberOfItems: -1 }); }).toThrowError(INTIAL_NUMBER_OF_ITEMS_TOO_SMALL);
   /* ----------------------------- degree too low ----------------------------- */

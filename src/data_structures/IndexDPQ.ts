@@ -567,6 +567,9 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
 
   private max: boolean;
 
+  // TODO: Users passing in objects will have references to them and be able to
+  // modify them without heap knowing. Is it worth copying in order to protect
+  // heap. Probably not. That's user error
   // TODO: is there a limit on how large the initial arrays size should be?
   constructor(props: IndexDPQProps<Item>) {
     const {
@@ -599,48 +602,6 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     }
   }
 
-  private buildHeap(array: Item[]): void {
-    this.arraysSize = array.length + 1;
-    this.numberOfItemsInHeap = array.length;
-    this.items = new Array(this.arraysSize);
-    this.items[0] = null;
-    this.pq = new Array(this.arraysSize);
-    this.pq[0] = -1;
-    this.qp = new Array(this.arraysSize);
-    this.qp[0] = -1;
-    for (let i = 1; i < this.arraysSize; i++) {
-      this.items[i] = array[i - 1];
-      this.pq[i] = i;
-      this.qp[i] = i;
-    }
-    // 'inductively' starting at the trivial basecase of leaf nodes,
-    // build up heap invariant
-    const start = this.findLastInternalNode();
-    for (let j = start; j > 0; j--) {
-      this.sink(j);
-    }
-  }
-
-  // TODO: think about when we need to return copies given that it is O(n) to
-  // copy it won't change time order of growth but it's still extra work and
-  // complexity here
-  public heapSort(): void {
-    let endOfUnsorted = this.numberOfItemsInHeap;
-    // while endOfUnsorted pointer is greater than 0
-    while (endOfUnsorted > 1) {
-      // exchange root with last unsorted item
-      this.exch(1, endOfUnsorted);
-      // decrement endOfUnsorted pointer
-      endOfUnsorted--;
-      // sink new root
-      this.sink(1, endOfUnsorted);
-    }
-    // now you have the heap in reverse sorted order
-    // TODO: check for better solution
-    for (let i = 1; i <= Math.floor(this.numberOfItemsInHeap / 2); i++) {
-      this.exch(i, this.numberOfItemsInHeap - i + 1);
-    }
-  }
   // NOTE: this doesn't work because order of parameters doesn't allow for
   // passing initialNumberOfItems or array in 3rd param
   // constructor(
@@ -711,6 +672,71 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   //   }
   // }
 
+  private buildHeap(array: Item[]): void {
+    this.arraysSize = array.length + 1;
+    this.numberOfItemsInHeap = array.length;
+    this.items = new Array(this.arraysSize);
+    this.items[0] = null;
+    this.pq = new Array(this.arraysSize);
+    this.pq[0] = -1;
+    this.qp = new Array(this.arraysSize);
+    this.qp[0] = -1;
+    for (let i = 1; i < this.arraysSize; i++) {
+      this.items[i] = array[i - 1];
+      this.pq[i] = i;
+      this.qp[i] = i;
+    }
+    // 'inductively' starting at the trivial basecase of leaf nodes,
+    // build up heap invariant
+    const start = this.findLastInternalNode();
+    for (let j = start; j > 0; j--) {
+      this.sink(j);
+    }
+  }
+
+  // TODO: think about when we need to return copies given that it is O(n) to
+  // copy it won't change time order of growth but it's still extra work and
+  // complexity here. Actually, not sure of time complexity of structuredClone
+  public heapSort(): void {
+    let endOfUnsorted = this.numberOfItemsInHeap;
+    // while endOfUnsorted pointer is greater than 0
+    while (endOfUnsorted > 1) {
+      // exchange root with last unsorted item
+      this.exch(1, endOfUnsorted);
+      // decrement endOfUnsorted pointer
+      endOfUnsorted--;
+      // sink new root
+      this.sink(1, endOfUnsorted);
+    }
+    // now you have the heap in reverse sorted order
+    // TODO: check for better solution
+    for (let i = 1; i <= Math.floor(this.numberOfItemsInHeap / 2); i++) {
+      this.exch(i, this.numberOfItemsInHeap - i + 1);
+    }
+  }
+
+  // NOTE: it probably isn't worth returning a copy if user already
+  // has references to items.
+  // TODO: think about shallow versus deep copy needs
+  // NOTE: can't use structuredClone for target ES version
+  public getItemsInHeapOrder(): (Item | null)[] {
+    if (this.isEmpty()) return [];
+    const orderedItems: (Item | null)[] = [];
+    for (let i = 1; i <= this.numberOfItemsInHeap; i++) {
+      const currItem = this.items[this.pq[i]];
+      if (typeof currItem === 'number'
+        || typeof currItem === 'string'
+        || typeof currItem === 'bigint') {
+        orderedItems.push(currItem);
+      } else if (currItem === null) orderedItems.push(null);
+      else {
+        const copy = currItem.clone();
+        orderedItems.push(copy);
+      }
+    }
+    return orderedItems;
+  }
+
   private validateIndex(i: number): void {
     if (i < 1) throw Error(`ERROR: index ${i}: ${INDEX_TOO_LOW}`);
     if (i > this.numberOfItemsInHeap) {
@@ -718,6 +744,7 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     }
   }
 
+  // TODO: should this check this.pq[1] === -1
   public isEmpty(): boolean {
     return this.numberOfItemsInHeap === 0;
   }

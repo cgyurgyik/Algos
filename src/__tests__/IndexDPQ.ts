@@ -351,25 +351,22 @@ describe('tests heapsort for a ternary min IPQ that starts empty with valid init
     expect(ipq3MinEmpty1.getInverseMap()).toEqual(
       [-1, 3, 2, 5, 4, 1, -1, -1],
     );
+    ipq3MinEmpty1.insert(10);
+    ipq3MinEmpty1.insert(77);
+    ipq3MinEmpty1.insert(-8);
+    ipq3MinEmpty1.insert(0);
+    ipq3MinEmpty1.heapSort();
+    // TODO: points to use for iterator
+    const sorted: (number | null)[] = [];
+    const heapCopy: number[] = ipq3MinEmpty1.getHeap();
+    const itemsCopy: (number | null)[] = ipq3MinEmpty1.getItems();
+    for (let i = 1; i <= ipq3MinEmpty1.getNumItems(); i++) {
+      sorted.push(itemsCopy[heapCopy[i]]);
+    }
+    expect(sorted).toEqual(
+      [-8, -8, -4, 0, 4, 10, 10, 12, 77],
+    );
   });
-  // FIX: inserts don't seem to be working
-  ipq3MinEmpty1.insert(10);
-  ipq3MinEmpty1.insert(77);
-  ipq3MinEmpty1.insert(-8);
-  ipq3MinEmpty1.insert(0);
-  console.log(ipq3MinEmpty1.getHeap());
-  ipq3MinEmpty1.heapSort();
-  console.log(ipq3MinEmpty1.getHeap());
-  // TODO: points to use for iterator
-  const sorted: (number | null)[] = [];
-  const heapCopy: number[] = ipq3MinEmpty1.getHeap();
-  const itemsCopy: (number | null)[] = ipq3MinEmpty1.getItems();
-  for (let i = 1; i < ipq3MinEmpty1.getNumItems(); i++) {
-    sorted.push(itemsCopy[heapCopy[i]]);
-  }
-  expect(sorted).toEqual(
-    [-8, -8, -4, 0, 4, 10, 10, 12, 77],
-  );
 });
 /* --------------------------------- strings -------------------------------- */
 describe('tests for a priority queue that compares strings', () => {
@@ -539,6 +536,21 @@ describe('tests for a priority queue that compares comparable Items seeded with 
     expect(ipq3MinCustomSeeded.getInverseMap()).toEqual(
       [-1, 5, 2, 3, 4, 1],
     );
+  });
+  // TODO: using json parse instead of structured clone because jest seems to not support
+  // structured clone. so testing is going to be more complicated
+  it('should allow you to get Items in heap order with the getItemsInHeapOrder method', () => {
+    const itemsInHeapOrder: (TestItem | null)[] = ipq3MinCustomSeeded.getItemsInHeapOrder();
+    expect(itemsInHeapOrder[0]).not.toBe(c5);
+    expect(itemsInHeapOrder[0]?.getDonation()).toEqual(c5.getDonation());
+    expect(itemsInHeapOrder[1]).not.toBe(c2);
+    expect(itemsInHeapOrder[1]?.getDonation()).toEqual(c2.getDonation());
+    expect(itemsInHeapOrder[2]).not.toBe(c3);
+    expect(itemsInHeapOrder[2]?.getDonation()).toEqual(c3.getDonation());
+    expect(itemsInHeapOrder[3]).not.toBe(c4);
+    expect(itemsInHeapOrder[3]?.getDonation()).toEqual(c4.getDonation());
+    expect(itemsInHeapOrder[4]).not.toBe(c1);
+    expect(itemsInHeapOrder[4]?.getDonation()).toEqual(c1.getDonation());
   });
 });
 /* ------------------------------- empty array ----------------------------- */

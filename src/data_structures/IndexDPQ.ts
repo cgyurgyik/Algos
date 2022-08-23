@@ -495,6 +495,8 @@
 
 // TODO: clean up index naming in methods (try to be consistent. maybe hi is
 // heap index)
+// TODO: clean up returning null versus throwing error when getting items and
+// root. Should be consistent. Also, check that we're returning copies always
 // eslint-disable-next-line max-len
 const INDEX_TOO_HIGH = 'Index is greater than the number of items NOTE: arrays are 1-indexed.';
 // eslint-disable-next-line max-len
@@ -767,20 +769,29 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
     const height = Math.ceil(
       Math.log((this.D - 1) * this.numberOfItemsInHeap + 1) / Math.log(this.D),
     ) - 1;
-    return (1 - (this.D ** (height + 1))) / (1 - this.D);
+    const levelAboveLeaves = height - 1;
+    return (1 - (this.D ** (levelAboveLeaves + 1))) / (1 - this.D);
   }
 
   public contains(k: number): boolean {
     return this.qp[k] !== -1;
   }
 
-  public rootIndex(): number {
+  public rootIndex(): number | null {
+    if (this.pq[1] === -1 || this.pq[1] === undefined) return null;
     return this.pq[1];
   }
 
   public root(): (Item | null) {
-    if (this.isEmpty()) throw new Error(NO_ROOT);
-    return this.items[this.pq[1]];
+    const root = this.items[this.pq[1]];
+    // just added root === null to satisfy typescript
+    if (root === null || this.isEmpty()) return null;
+    if (typeof root === 'number'
+      || typeof root === 'string'
+      || typeof root === 'bigint') {
+      return root;
+    }
+    return root.clone();
   }
 
   // TODO: review for accuracy and optimization
@@ -977,34 +988,3 @@ export {
   NO_ROOT,
   NO_ITEM_TO_CHANGE,
 };
-
-// const ternaryMaxPQ = new IndexDPQ<number>({
-//   D: 3,
-//   max: true,
-//   initialNumberOfItems: 2,
-// });
-
-// ternaryMaxPQ.insert(4);
-// ternaryMaxPQ.insert(-4);
-// ternaryMaxPQ.insert(12);
-// ternaryMaxPQ.insert(10);
-// ternaryMaxPQ.insert(56);
-// ternaryMaxPQ.insert(3);
-// ternaryMaxPQ.insert(4);
-// ternaryMaxPQ.insert(-1);
-// ternaryMaxPQ.insert(23);
-// while (!ternaryMaxPQ.isEmpty()) {
-//   const deleted: number | null = ternaryMaxPQ.deleteRoot();
-//   console.log(`Deleted Root: ${deleted}`);
-// }
-
-// console.log('---------------------pq built from array--------------');
-// const binaryMinPQ = new IndexDPQ<number>({
-//   D: 2,
-//   max: false,
-//   array: [1, 2, 4, 7, -1],
-// });
-// while (!binaryMinPQ.isEmpty()) {
-//   const deleted: number | null = binaryMinPQ.deleteRoot();
-//   console.log(`Deleted Root ${deleted}`);
-// }

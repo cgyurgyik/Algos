@@ -1,8 +1,9 @@
+/* eslint-disable no-new */
 /* eslint-disable max-len */
 import { describe, expect, it } from '@jest/globals';
 // TODO: fix import. it works but eslint complains
 import {
-  IndexDPQ, Comparable, INDEX_TOO_LOW, NO_ROOT_TO_DELETE, NO_ROOT, NO_ITEM_TO_CHANGE, INDEX_TOO_HIGH,
+  IndexDPQ, Comparable, INDEX_TOO_LOW, NO_ROOT_TO_DELETE, NO_ROOT, NO_ITEM_TO_CHANGE, INDEX_TOO_HIGH, INVALID_CONSTRUCTOR_MISSING_ARGUMENTS, INVALID_CONSTRUCTOR_OUT_OF_SYNC, INTIAL_NUMBER_OF_ITEMS_TOO_SMALL, DEGREE_TOO_LOW,
 } from '../data_structures/IndexDPQ';
 // TODO: test very large values for D, and huge arrays and such
 // TODO: think about mixing generic types (nothing in the transpiled code would
@@ -508,11 +509,28 @@ describe('tests for a priority queue that compares comparable Items seeded with 
     );
   });
 });
-// /* --------------------------- generic independent -------------------------- */
-// const ipq4MinSeededEmpty = new IndexPQ({
-//   D: 4,
-//   max: true,
-//   array: [],
-// });
-// /* -------------------------- invalid construction -------------------------- */
-// /* ---------------------------- very large values --------------------------- */
+/* ------------------------------- empty array ----------------------------- */
+describe('tests for a priority queue that has been given an empty array for construction', () => {
+  const ipq4MinSeededEmpty = new IndexDPQ<TestItem>({
+    D: 4,
+    max: true,
+    array: [],
+  });
+  it('should start with arrays of size 1 that are either null or -1', () => {
+    expect(ipq4MinSeededEmpty.getItems()).toEqual([null]);
+    expect(ipq4MinSeededEmpty.getHeap()).toEqual([-1]);
+    expect(ipq4MinSeededEmpty.getInverseMap()).toEqual([-1]);
+  });
+});
+/* -------------------------- invalid construction -------------------------- */
+describe('tests that right errors get thrown for invalid construction.', () => {
+  /* ------------- neither array nor initialNumberOfItems provided ------------ */
+  expect(() => { new IndexDPQ<number>({ D: 3, max: true }); }).toThrowError(INVALID_CONSTRUCTOR_MISSING_ARGUMENTS);
+  /* --------------- array and initialNumberOfItems out of sync --------------- */
+  expect(() => { new IndexDPQ<number>({ D: 3, max: true, initialNumberOfItems: 10, array: [] }); }).toThrowError(INVALID_CONSTRUCTOR_OUT_OF_SYNC);
+  /* ---------------------- initialNumberOfItems too low ---------------------- */
+  expect(() => { new IndexDPQ<number>({ D: 3, max: true, initialNumberOfItems: -1 }); }).toThrowError(INTIAL_NUMBER_OF_ITEMS_TOO_SMALL);
+  /* ----------------------------- degree too low ----------------------------- */
+  expect(() => { new IndexDPQ<number>({ D: 0, max: true, initialNumberOfItems: 3 }); }).toThrowError(DEGREE_TOO_LOW);
+});
+/* ---------------------------- very large values --------------------------- */

@@ -3,8 +3,20 @@
 import { describe, expect, it } from '@jest/globals';
 // TODO: fix import. it works but eslint complains
 import {
-  IndexDPQ, Comparable, INDEX_TOO_LOW, NO_ROOT_TO_DELETE, NO_ROOT, NO_ITEM_TO_CHANGE, INDEX_TOO_HIGH, INVALID_CONSTRUCTOR_MISSING_ARGUMENTS, INVALID_CONSTRUCTOR_OUT_OF_SYNC, INTIAL_NUMBER_OF_ITEMS_TOO_SMALL, DEGREE_TOO_LOW,
+  IndexDPQ, Comparable,
 } from '../data_structures/IndexDPQ';
+// import errors
+// TODO: think if there is a more elegant way to do this
+import {
+  INDEX_TOO_HIGH,
+  INDEX_TOO_LOW,
+  INITIAL_NUMBER_OF_ITEMS_TOO_SMALL,
+  INVALID_CONSTRUCTOR_OUT_OF_SYNC,
+  INVALID_CONSTRUCTOR_MISSING_ARGUMENTS,
+  NO_ROOT_TO_DELETE,
+  NO_ITEM_TO_CHANGE,
+  DEGREE_TOO_LOW,
+} from '../data_structures/utils'
 // TODO: test very large values for D, and huge arrays and such
 // TODO: think about mixing generic types (nothing in the transpiled code would
 // prevent this right?)
@@ -577,7 +589,7 @@ describe('tests that right errors get thrown for invalid construction.', () => {
     });
   }).toThrowError(INVALID_CONSTRUCTOR_OUT_OF_SYNC);
   /* ---------------------- initialNumberOfItems too low ---------------------- */
-  expect(() => { new IndexDPQ<number>({ D: 3, max: true, initialNumberOfItems: -1 }); }).toThrowError(INTIAL_NUMBER_OF_ITEMS_TOO_SMALL);
+  expect(() => { new IndexDPQ<number>({ D: 3, max: true, initialNumberOfItems: -1 }); }).toThrowError(INITIAL_NUMBER_OF_ITEMS_TOO_SMALL);
   /* ----------------------------- degree too low ----------------------------- */
   expect(() => { new IndexDPQ<number>({ D: 0, max: true, initialNumberOfItems: 3 }); }).toThrowError(DEGREE_TOO_LOW);
 });

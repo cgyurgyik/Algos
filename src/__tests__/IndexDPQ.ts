@@ -467,7 +467,7 @@ class TestItem implements Comparable<TestItem> {
 
   public isLooselyEqual(x: TestItem): boolean {
     // eslint-disable-next-line eqeqeq
-    return (this == x);
+    return (this.calculateScore() == x.calculateScore());
   }
 
   public isStrictlyEqual(x: TestItem): boolean {

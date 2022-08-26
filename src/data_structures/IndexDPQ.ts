@@ -802,7 +802,7 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
          */
       if (item2 !== null) return (item1 <= item2) !== this.max;
     } else if (item1 !== null && item2 !== null) {
-      return (item1.isLessThan(item2) || item1.isStrictlyEqual(item2))
+      return (item1.isLessThan(item2) || item1.isLooselyEqual(item2))
       !== this.max;
     }
     throw new Error(COMPARISON_FAILED);

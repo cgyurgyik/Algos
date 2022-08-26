@@ -1,4 +1,6 @@
 import { IndexDPQ, Comparable, IndexDPQProps } from '../data_structures/IndexDPQ';
+// FIXME: when you delete the root, the items array reorders so all
+// the mapping from graph to items breaks
 
 // TODO: is it fair to say that an array of Vertices is a graph?
 // edges are mixed in
@@ -58,7 +60,7 @@ const findShortestPath = (
   const paths: Path[] = new Array(graph.length);
   // add rest of paths
   for (let i = 0; i < graph.length; i++) {
-    if (i !== startIndex) {
+    if (i === startIndex) {
       paths[i] = new Path(-1, -Infinity);
     } else {
       paths[i] = new Path(-1, Infinity);
@@ -108,18 +110,21 @@ const findShortestPath = (
   };
   // TODO: make sure endIndex is valid
   const endItemIndex: number = endIndex + 1;
+  // TODO: getItem has to clone. is there a way to avoid this?
   while (pathMinPQ.root() !== pathMinPQ.getItem(endItemIndex)) {
     const rootItemIndex: number | null = pathMinPQ.rootIndex();
     assertNonNullish(rootItemIndex, 'ERROR: rootItemIndex was null/undefined');
     const root: Path | null = pathMinPQ.deleteRoot();
     assertNonNullish(root, 'Error: root was null/undefined');
-    const costFromStart: number = (
-      // if the root we just removed was the start node, then the cost to get
-      // there was 0 and not -Infinity, which we chose in order to make sure
-      // that nothing would be smaller
-      rootItemIndex === startIndex - 1
-        ? 0 : root.cost
-    );
+    // if the root we just removed was the start node, then the cost to get
+    // there was 0 and not -Infinity, which we chose in order to make sure
+    // that nothing would be smaller
+    let costFromStart: number;
+    if (rootItemIndex === (startIndex + 1)) {
+      costFromStart = 0;
+    } else {
+      costFromStart = root.cost;
+    }
     updateNeighbors(rootItemIndex, costFromStart);
   }
 

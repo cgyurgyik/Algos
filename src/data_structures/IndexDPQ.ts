@@ -735,6 +735,15 @@ class IndexDPQ<Item extends Comparable<Item> | number | string | bigint> {
   }
 
   // TODO: should this check this.pq[1] === -1
+  // TODO: it doesn't seem like a great idea to do multiple
+  // equivalent checks for something that will probably be used a bunch
+  // but using isEmpty to only check one thing (like numberOfItemsInHeap)
+  // means that checking isEmpty() doesn't tell typescript what it needs
+  // to know. For example, if all you do is check the numberOfItemsInHeap,
+  // and then you check isEmpty() you have to type root = pq.root() as your
+  // generic OR null. That's annoying.
+  // I could check all the equivalent definitions of empty here
+  // or not rely on null (that would require a lot of changes)
   public isEmpty(): boolean {
     return this.numberOfItemsInHeap === 0;
   }

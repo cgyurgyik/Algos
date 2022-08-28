@@ -199,21 +199,21 @@ const findShortestPath = (
       paths[i] = new Path(currVertexName, null, Infinity);
     }
   }
-  /* ---------------------------- Initialize IPQ ---------------------------- */
+  /* ------------------------ Initialize pathMinIPQ ------------------------- */
   // calculate optimal Degree
   // TODO: figure out the equation
   const findOptimalDegree = ():number => graph[start].length;
   const optimalDegree = findOptimalDegree();
   // initialize new IndexDPQ using optimal degree and paths array
-  const IPQProps = {
+  const pathMinIPQProps = {
     D: optimalDegree,
     max: false,
     array: paths,
   };
-  const IPQ: IndexDPQ<Path> = new IndexDPQ<Path>(IPQProps);
+  const pathMinIPQ: IndexDPQ<Path> = new IndexDPQ<Path>(pathMinIPQProps);
   /* -------------------------- Find Shortest Path -------------------------- */
   // While IndexDPQ's root is not the End Path
-  const firstRoot: Path | null = IPQ.root();
+  const firstRoot: Path | null = pathMinIPQ.root();
   assertNonNullish(
     firstRoot,
     'ERROR: No element in Paths Index Queue!',
@@ -222,9 +222,9 @@ const findShortestPath = (
     firstRoot.name,
     'ERROR: Root exists but has no name!',
   );
-  while (IPQ.root()?.name !== null && IPQ.root()?.name !== end) {
+  while (pathMinIPQ.root()?.name !== null && pathMinIPQ.root()?.name !== end) {
     // Delete Root (Path) and save it to calculatedPaths
-    const deletedRoot: Path | null = IPQ.deleteRoot();
+    const deletedRoot: Path | null = pathMinIPQ.deleteRoot();
     assertNonNullish(
       deletedRoot,
       'ERROR: deletedRoot is null!',
@@ -232,7 +232,13 @@ const findShortestPath = (
     calculatedPaths[deletedRoot.name] = deletedRoot;
     // save the deleted root's cost (this is the cost to get from Start to
     // the deleted root)
-    const costToDeletedRoot: number = deletedRoot.cost;
+    // Switch cost of start from -Infinity to 0
+    let costToDeletedRoot: number;
+    if (deletedRoot.name === start) {
+      costToDeletedRoot = 0;
+    } else {
+      costToDeletedRoot = deletedRoot.cost;
+    }
     /* ------------------------- Update Neighbors ------------------------- */
     // initialize deletedNeighbors to graph[name]
     const deletedNeighbors: Edge[] = graph[deletedRoot.name];
@@ -247,10 +253,10 @@ const findShortestPath = (
       // deleted root (Path)
       const totalCost: number = costToDeletedRoot + costToNeighbor;
       // find the Path items index for the current neighbor by linearly
-      // searching through ipq items
+      // searching through pathminipq items
       let neighborItemIndex: number;
-      for (let k = 0; k < IPQ.getNumItems(); k++) {
-        const currPath: Path | null = IPQ.getItem(k + 1);
+      for (let k = 0; k < pathMinIPQ.getNumItems(); k++) {
+        const currPath: Path | null = pathMinIPQ.getItem(k + 1);
         assertNonNullish(
           currPath,
           'ERROR: currPath is null!',
@@ -260,14 +266,14 @@ const findShortestPath = (
           // if the totalCost is less than the cost of the Path corresponding to
           // current neighbor
           if (totalCost < currPath.cost) {
-            // call the change(itemIndex) function on ipq with currentNeighbor
-            // items index. Update cost and parent
+            // call the change(itemIndex) function on pathMinIPQ with
+            // currentNeighbor items index. Update cost and parent
             const updatedPath: Path = new Path(
               currPath.name,
               deletedRoot.name,
               totalCost,
             );
-            IPQ.change(neighborItemIndex, updatedPath);
+            pathMinIPQ.change(neighborItemIndex, updatedPath);
             break;
           }
         }
@@ -275,8 +281,8 @@ const findShortestPath = (
     }
   }
   /* ----------------------------- Build Result ----------------------------- */
-  // grab root of ipq. This should be the end path.
-  const endPath: Path | null = IPQ.root();
+  // grab root of pathMinIPQ. This should be the end path.
+  const endPath: Path | null = pathMinIPQ.root();
   assertNonNullish(
     endPath,
     'ERROR: endPath is null!',
@@ -302,6 +308,14 @@ const findShortestPath = (
   }
   // push final node onto the result
   result[1].push(parent.name);
+  // reverse shortest path vertex names so it starts at start and
+  // ends at end
+  const shortestPathLength = result[1].length;
+  for (let m = 0; m < Math.floor(shortestPathLength / 2); m++) {
+    const temp: string = result[1][m];
+    result[1][m] = result[1][shortestPathLength - m - 1];
+    result[1][shortestPathLength - m - 1] = temp;
+  }
   return result;
 };
 

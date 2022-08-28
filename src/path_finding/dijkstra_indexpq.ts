@@ -325,6 +325,16 @@ const testGraph: Graph = {
   START: [['A', 6], ['B', 3]],
   END: [],
 };
-
 const shortestPath = findShortestPath(testGraph, 'START', 'END');
 console.log(shortestPath);
+
+const testGraph2: Graph = {
+  POSTER: [['BASS_GUITAR', 30], ['DRUM_SET', 35]],
+  PIANO: [],
+  BOOK: [['POSTER', 0], ['LP', 5]],
+  BASS_GUITAR: [['PIANO', 20]],
+  DRUM_SET: [['PIANO', 10]],
+  LP: [['BASS_GUITAR', 15], ['DRUM_SET', 20]],
+};
+const shortestPath2 = findShortestPath(testGraph2, 'BOOK', 'PIANO');
+console.log(shortestPath2);

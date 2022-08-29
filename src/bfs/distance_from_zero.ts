@@ -1,3 +1,8 @@
+/**
+ * https://leetcode.com/problems/01-matrix/
+ * Given an m x n binary matrix mat, return the distance of the nearest 0 for
+ * each cell. The distance between two adjacent cells is 1.
+ */
 type zeroOneMatrix = (0 | 1) [][];
 // TODO: figure out time complexity (O(m*n*numberof1s*BFSCost))
 const distanceFromZero = (mat: zeroOneMatrix): number[][] | number[] => {
@@ -28,9 +33,9 @@ const distanceFromZero = (mat: zeroOneMatrix): number[][] | number[] => {
   }
 
   const BFSCost = (i: number, j: number): number => {
-    const cost: number = 0;
     // TODO: how would i cache with an array?
     const cache: { [key: number]: (0 | 1) } = {};
+    // TODO: more elegant way to handle level?
     const queue: [[i: number, j: number, level: number]] = [[i, j, 0]];
 
     while (queue.length) {
